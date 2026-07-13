@@ -15,6 +15,38 @@ saída estruturada (JSON) ou um relatório de texto padronizado.
 > ⚠️ **Aviso:** os intervalos de referência são orientativos e **não
 > substituem** os intervalos do laboratório emissor nem avaliação médica.
 
+O projeto tem duas frentes que compartilham a mesma lógica:
+
+- **Aplicação web** (`docs/`) — roda 100% no navegador, pronta para o
+  **GitHub Pages**. Cole o laudo e veja a transcrição na hora; nada é enviado
+  a servidores.
+- **Pacote Python + CLI** (`transcritor/`, `cli.py`) — para uso em scripts,
+  automações e processamento em lote.
+
+## Aplicação web (GitHub Pages)
+
+A pasta [`docs/`](docs/) contém um site estático (HTML + CSS + JavaScript,
+sem dependências e sem build). A lógica de transcrição foi portada de Python
+para JavaScript em [`docs/transcritor.js`](docs/transcritor.js).
+
+**Como publicar no GitHub Pages** (escolha uma opção):
+
+1. **GitHub Actions (recomendado):** em `Settings > Pages`, defina
+   *Source: GitHub Actions*. O workflow
+   [`.github/workflows/pages.yml`](.github/workflows/pages.yml) publica a
+   pasta `docs/` a cada push na branch padrão. O site fica em
+   `https://<usuario>.github.io/<repositorio>/`.
+2. **Deploy a partir de uma branch:** em `Settings > Pages`, defina
+   *Source: Deploy from a branch*, branch `main`, pasta `/docs`.
+
+**Rodar localmente:**
+
+```bash
+cd docs
+python -m http.server 8000
+# abra http://localhost:8000
+```
+
 ## O que ele faz
 
 - **Reconhece analitos** por sinônimos (PT-BR e siglas): `Hemoglobina`/`Hb`,
@@ -107,17 +139,23 @@ Novos exames são adicionados incluindo uma entrada em
 ## Estrutura do projeto
 
 ```
-transcritor/
-  catalogo.py      # catálogo canônico (LOINC, unidades, sinônimos, referências)
-  parser.py        # extrai (rótulo, valor, unidade) de cada linha do laudo
-  normalizador.py  # casa com o catálogo, converte unidades, avalia referência
-  metadados.py     # extrai cabeçalho (paciente, data, sexo...)
-  texto.py         # normalização de texto/número/unidade
-  transcritor.py   # orquestração e formatação (JSON / relatório)
-  modelos.py       # dataclasses
-cli.py             # interface de linha de comando
-exemplos/          # laudo de exemplo
-tests/             # testes (unittest, biblioteca padrão)
+docs/                # aplicação web (GitHub Pages)
+  index.html
+  style.css
+  app.js             # interface (DOM)
+  transcritor.js     # núcleo portado de Python para JavaScript
+transcritor/         # pacote Python (mesma lógica)
+  catalogo.py        # catálogo canônico (LOINC, unidades, sinônimos, referências)
+  parser.py          # extrai (rótulo, valor, unidade) de cada linha do laudo
+  normalizador.py    # casa com o catálogo, converte unidades, avalia referência
+  metadados.py       # extrai cabeçalho (paciente, data, sexo...)
+  texto.py           # normalização de texto/número/unidade
+  transcritor.py     # orquestração e formatação (JSON / relatório)
+  modelos.py         # dataclasses
+cli.py               # interface de linha de comando
+exemplos/            # laudo de exemplo
+tests/               # testes (unittest, biblioteca padrão)
+.github/workflows/   # CI (testes) e deploy do GitHub Pages
 ```
 
 ## Testes

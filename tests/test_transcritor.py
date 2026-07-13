@@ -74,6 +74,16 @@ class TestParserLinha(unittest.TestCase):
     def test_linha_sem_numero(self):
         self.assertIsNone(parse_linha("Observação clínica sem valor."))
 
+    def test_faixa_referencia_inline_ignorada(self):
+        # O valor medido é 92; os números do intervalo (70-99) são ignorados.
+        item = parse_linha("Glicose 92 mg/dL (70 - 99)")
+        self.assertEqual(parse_numero_br(item.valor_texto), 92.0)
+        self.assertEqual(item.unidade_original, "mg/dL")
+
+    def test_faixa_referencia_colchetes(self):
+        item = parse_linha("Creatinina 0,95 mg/dL [0,6 - 1,3]")
+        self.assertEqual(parse_numero_br(item.valor_texto), 0.95)
+
 
 class TestIdentificacao(unittest.TestCase):
     def test_hdl_vence_colesterol(self):
@@ -90,6 +100,24 @@ class TestIdentificacao(unittest.TestCase):
 
     def test_desconhecido(self):
         self.assertIsNone(identificar_analito("Exame desconhecido ABCXYZ"))
+
+    def test_bilirrubina_direta_vence_total(self):
+        # 'bilirrubina' (sinônimo de total) não deve capturar 'Bilirrubina direta'.
+        self.assertEqual(identificar_analito("Bilirrubina direta").nome, "Bilirrubina direta")
+        self.assertEqual(identificar_analito("Bilirrubina total").nome, "Bilirrubina total")
+        self.assertEqual(identificar_analito("Bilirrubina").nome, "Bilirrubina total")
+
+    def test_novos_analitos(self):
+        casos = {
+            "Albumina": "Albumina",
+            "Cálcio": "Cálcio total",
+            "Magnésio": "Magnésio",
+            "Ferro sérico": "Ferro sérico",
+            "VHS": "VHS",
+            "Colesterol VLDL": "Colesterol VLDL",
+        }
+        for rotulo, esperado in casos.items():
+            self.assertEqual(identificar_analito(rotulo).nome, esperado, rotulo)
 
 
 class TestConversaoEReferencia(unittest.TestCase):
@@ -121,6 +149,18 @@ class TestConversaoEReferencia(unittest.TestCase):
         tf = transcrever("Creatinina 1,2 mg/dL", sexo="F")
         self.assertEqual(tm.resultados[0].situacao, "normal")
         self.assertEqual(tf.resultados[0].situacao, "acima")
+
+    def test_conversao_calcio_mmol(self):
+        # 2,4 mmol/L de cálcio ≈ 9,62 mg/dL (normal).
+        r = transcrever("Cálcio 2,4 mmol/L").resultados[0]
+        self.assertEqual(r.unidade, "mg/dL")
+        self.assertAlmostEqual(r.valor, 9.62, places=1)
+        self.assertEqual(r.situacao, "normal")
+
+    def test_glicose_com_faixa_inline(self):
+        r = transcrever("Glicose de jejum 92 mg/dL (70 - 99)").resultados[0]
+        self.assertEqual(r.valor, 92.0)
+        self.assertEqual(r.situacao, "normal")
 
 
 class TestLaudoCompleto(unittest.TestCase):

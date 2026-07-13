@@ -126,12 +126,15 @@ for r in t.resultados:
 | Categoria        | Exames |
 |------------------|--------|
 | Hemograma        | Hemoglobina, Hematócrito, Eritrócitos, Leucócitos, Plaquetas, VCM, HCM, CHCM, RDW |
-| Bioquímica       | Glicose, HbA1c, Ureia, Creatinina, Ácido úrico |
-| Lipidograma      | Colesterol total, HDL, LDL, Triglicerídeos |
-| Função hepática  | AST (TGO), ALT (TGP), Gama GT, Fosfatase alcalina, Bilirrubina total |
-| Eletrólitos      | Sódio, Potássio |
-| Tireoide         | TSH, T4 livre |
-| Outros           | Ferritina, Vitamina D (25-OH), Vitamina B12, PCR |
+| Bioquímica       | Glicose, HbA1c, Ureia, Creatinina, Ácido úrico, Ferro sérico, LDH, CK/CPK, Amilase, Lipase |
+| Lipidograma      | Colesterol total, HDL, LDL, VLDL, Triglicerídeos |
+| Função hepática  | AST (TGO), ALT (TGP), Gama GT, Fosfatase alcalina, Bilirrubina total/direta/indireta, Proteínas totais, Albumina |
+| Eletrólitos      | Sódio, Potássio, Cloro, Cálcio, Magnésio, Fósforo |
+| Tireoide         | TSH, T4 livre, T3 total |
+| Outros           | Ferritina, Vitamina D (25-OH), Vitamina B12, PCR, VHS |
+
+São **47 analitos** no total. O parser ignora faixas de referência escritas
+na mesma linha entre parênteses ou colchetes (ex.: `Glicose 92 mg/dL (70-99)`).
 
 Novos exames são adicionados incluindo uma entrada em
 [`transcritor/catalogo.py`](transcritor/catalogo.py).
@@ -161,8 +164,13 @@ tests/               # testes (unittest, biblioteca padrão)
 ## Testes
 
 ```bash
+# Núcleo Python (biblioteca padrão)
 python -m unittest discover -s tests -v
+
+# Núcleo JavaScript da versão web (runner nativo do Node, sem dependências)
+node --test tests/transcritor.test.mjs
 ```
 
-A CI do GitHub (`.github/workflows/ci.yml`) roda os testes em Python
-3.9–3.12 a cada push e pull request.
+A CI do GitHub (`.github/workflows/ci.yml`) roda os testes de Python
+(3.9–3.12) e de JavaScript a cada push e pull request, garantindo que as
+duas implementações permaneçam em paridade.

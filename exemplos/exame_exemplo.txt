@@ -14,30 +14,47 @@ CHCM .......................... 33,5 g/dL
 RDW ........................... 13,2 %
 
 BIOQUÍMICA
-Glicose de jejum .............. 92 mg/dL
+Glicose de jejum .............. 92 mg/dL (VR: 70 - 99)
 Hemoglobina glicada (HbA1c) ... 5,4 %
 Ureia ......................... 32 mg/dL
 Creatinina .................... 0,95 mg/dL
 Ácido úrico ................... 5,1 mg/dL
+Ferro sérico .................. 90 µg/dL
+LDH ........................... 190 U/L
 
 LIPIDOGRAMA
 Colesterol Total .............. 210 mg/dL
 Colesterol HDL ................ 38 mg/dL
 Colesterol LDL ................ 142 mg/dL
+Colesterol VLDL ............... 36 mg/dL
 Triglicerídeos ................ 180 mg/dL
 
 FUNÇÃO HEPÁTICA
 TGO (AST) ..................... 28 U/L
 TGP (ALT) ..................... 35 U/L
 Gama GT ....................... 45 U/L
+Proteínas totais .............. 7,2 g/dL
+Albumina ...................... 4,3 g/dL
+Bilirrubina total ............. 0,8 mg/dL
+Bilirrubina direta ............ 0,2 mg/dL
+
+ELETRÓLITOS
+Sódio ......................... 140 mmol/L
+Potássio ...................... 4,3 mmol/L
+Cloro ......................... 103 mmol/L
+Cálcio ........................ 9,4 mg/dL
+Magnésio ...................... 2,0 mg/dL
+Fósforo ....................... 3,4 mg/dL
 
 TIREOIDE
 TSH ........................... 2,1 µUI/mL
 T4 livre ...................... 1,3 ng/dL
+T3 total ...................... 130 ng/dL
 
 OUTROS
 Vitamina D (25-OH) ............ 24 ng/mL
 Vitamina B12 .................. 450 pg/mL
 Ferritina ..................... 120 ng/mL
 PCR ........................... < 5 mg/L
+VHS ........................... 12 mm/h
 Observação clínica sem valor numérico.

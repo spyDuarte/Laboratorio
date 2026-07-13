@@ -1,0 +1,43 @@
+LABORATÓRIO CENTRAL DE ANÁLISES CLÍNICAS
+Paciente: João da Silva
+Data da coleta: 10/07/2026
+
+HEMOGRAMA COMPLETO
+Hemoglobina .................... 14,5 g/dL
+Hematócrito .................... 43 %
+Hemácias ...................... 4,80 milhões/mm³
+Leucócitos .................... 7.200 /mm³
+Plaquetas ..................... 250.000 /mm³
+VCM ........................... 89 fL
+HCM ........................... 30 pg
+CHCM .......................... 33,5 g/dL
+RDW ........................... 13,2 %
+
+BIOQUÍMICA
+Glicose de jejum .............. 92 mg/dL
+Hemoglobina glicada (HbA1c) ... 5,4 %
+Ureia ......................... 32 mg/dL
+Creatinina .................... 0,95 mg/dL
+Ácido úrico ................... 5,1 mg/dL
+
+LIPIDOGRAMA
+Colesterol Total .............. 210 mg/dL
+Colesterol HDL ................ 38 mg/dL
+Colesterol LDL ................ 142 mg/dL
+Triglicerídeos ................ 180 mg/dL
+
+FUNÇÃO HEPÁTICA
+TGO (AST) ..................... 28 U/L
+TGP (ALT) ..................... 35 U/L
+Gama GT ....................... 45 U/L
+
+TIREOIDE
+TSH ........................... 2,1 µUI/mL
+T4 livre ...................... 1,3 ng/dL
+
+OUTROS
+Vitamina D (25-OH) ............ 24 ng/mL
+Vitamina B12 .................. 450 pg/mL
+Ferritina ..................... 120 ng/mL
+PCR ........................... < 5 mg/L
+Observação clínica sem valor numérico.

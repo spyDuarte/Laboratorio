@@ -1,0 +1,254 @@
+[
+  {
+    "code": "HGB",
+    "name": "Hemoglobina",
+    "category": "Hemograma",
+    "unit": "g/dL",
+    "reference_min": 12.0,
+    "reference_max": 16.0,
+    "aliases": ["hemoglobina", "hgb", "hb"]
+  },
+  {
+    "code": "HCT",
+    "name": "Hematócrito",
+    "category": "Hemograma",
+    "unit": "%",
+    "reference_min": 36.0,
+    "reference_max": 46.0,
+    "aliases": ["hematócrito", "hematocrito", "hct"]
+  },
+  {
+    "code": "LEUC",
+    "name": "Leucócitos",
+    "category": "Hemograma",
+    "unit": "/mm3",
+    "reference_min": 4000.0,
+    "reference_max": 10000.0,
+    "aliases": ["leucócitos", "leucocitos", "leucócitos totais", "wbc"]
+  },
+  {
+    "code": "PLAQ",
+    "name": "Plaquetas",
+    "category": "Hemograma",
+    "unit": "/mm3",
+    "reference_min": 150000.0,
+    "reference_max": 450000.0,
+    "aliases": ["plaquetas", "plt"]
+  },
+  {
+    "code": "GLIC",
+    "name": "Glicose",
+    "category": "Bioquímica",
+    "unit": "mg/dL",
+    "reference_min": 70.0,
+    "reference_max": 99.0,
+    "aliases": ["glicose de jejum", "glicemia de jejum", "glicose", "glicemia"]
+  },
+  {
+    "code": "HBA1C",
+    "name": "Hemoglobina Glicada",
+    "category": "Bioquímica",
+    "unit": "%",
+    "reference_min": 4.0,
+    "reference_max": 5.6,
+    "aliases": ["hemoglobina glicada", "hba1c"]
+  },
+  {
+    "code": "COLT",
+    "name": "Colesterol Total",
+    "category": "Bioquímica",
+    "unit": "mg/dL",
+    "reference_min": null,
+    "reference_max": 200.0,
+    "aliases": ["colesterol total"]
+  },
+  {
+    "code": "HDL",
+    "name": "Colesterol HDL",
+    "category": "Bioquímica",
+    "unit": "mg/dL",
+    "reference_min": 40.0,
+    "reference_max": null,
+    "aliases": ["colesterol hdl", "hdl"]
+  },
+  {
+    "code": "LDL",
+    "name": "Colesterol LDL",
+    "category": "Bioquímica",
+    "unit": "mg/dL",
+    "reference_min": null,
+    "reference_max": 130.0,
+    "aliases": ["colesterol ldl", "ldl"]
+  },
+  {
+    "code": "VLDL",
+    "name": "Colesterol VLDL",
+    "category": "Bioquímica",
+    "unit": "mg/dL",
+    "reference_min": null,
+    "reference_max": 30.0,
+    "aliases": ["colesterol vldl", "vldl"]
+  },
+  {
+    "code": "TRIG",
+    "name": "Triglicerídeos",
+    "category": "Bioquímica",
+    "unit": "mg/dL",
+    "reference_min": null,
+    "reference_max": 150.0,
+    "aliases": ["triglicerídeos", "triglicerides", "triglicérides"]
+  },
+  {
+    "code": "UREA",
+    "name": "Ureia",
+    "category": "Bioquímica",
+    "unit": "mg/dL",
+    "reference_min": 10.0,
+    "reference_max": 50.0,
+    "aliases": ["ureia", "uréia"]
+  },
+  {
+    "code": "CREAT",
+    "name": "Creatinina",
+    "category": "Bioquímica",
+    "unit": "mg/dL",
+    "reference_min": 0.6,
+    "reference_max": 1.2,
+    "aliases": ["creatinina"]
+  },
+  {
+    "code": "AC_URICO",
+    "name": "Ácido Úrico",
+    "category": "Bioquímica",
+    "unit": "mg/dL",
+    "reference_min": 2.5,
+    "reference_max": 7.0,
+    "aliases": ["ácido úrico", "acido urico"]
+  },
+  {
+    "code": "TGO",
+    "name": "TGO/AST",
+    "category": "Bioquímica",
+    "unit": "U/L",
+    "reference_min": 5.0,
+    "reference_max": 40.0,
+    "aliases": ["tgo/ast", "tgo", "ast"]
+  },
+  {
+    "code": "TGP",
+    "name": "TGP/ALT",
+    "category": "Bioquímica",
+    "unit": "U/L",
+    "reference_min": 5.0,
+    "reference_max": 41.0,
+    "aliases": ["tgp/alt", "tgp", "alt"]
+  },
+  {
+    "code": "GGT",
+    "name": "Gama GT",
+    "category": "Bioquímica",
+    "unit": "U/L",
+    "reference_min": 8.0,
+    "reference_max": 61.0,
+    "aliases": ["gama gt", "gama-gt", "ggt"]
+  },
+  {
+    "code": "FA",
+    "name": "Fosfatase Alcalina",
+    "category": "Bioquímica",
+    "unit": "U/L",
+    "reference_min": 40.0,
+    "reference_max": 129.0,
+    "aliases": ["fosfatase alcalina"]
+  },
+  {
+    "code": "BT",
+    "name": "Bilirrubina Total",
+    "category": "Bioquímica",
+    "unit": "mg/dL",
+    "reference_min": 0.2,
+    "reference_max": 1.2,
+    "aliases": ["bilirrubina total"]
+  },
+  {
+    "code": "TSH",
+    "name": "TSH",
+    "category": "Hormônios",
+    "unit": "uUI/mL",
+    "reference_min": 0.4,
+    "reference_max": 4.0,
+    "aliases": ["tsh"]
+  },
+  {
+    "code": "T4L",
+    "name": "T4 Livre",
+    "category": "Hormônios",
+    "unit": "ng/dL",
+    "reference_min": 0.7,
+    "reference_max": 1.8,
+    "aliases": ["t4 livre"]
+  },
+  {
+    "code": "NA",
+    "name": "Sódio",
+    "category": "Eletrólitos",
+    "unit": "mEq/L",
+    "reference_min": 135.0,
+    "reference_max": 145.0,
+    "aliases": ["sódio", "sodio"]
+  },
+  {
+    "code": "K",
+    "name": "Potássio",
+    "category": "Eletrólitos",
+    "unit": "mEq/L",
+    "reference_min": 3.5,
+    "reference_max": 5.0,
+    "aliases": ["potássio", "potassio"]
+  },
+  {
+    "code": "CA",
+    "name": "Cálcio",
+    "category": "Eletrólitos",
+    "unit": "mg/dL",
+    "reference_min": 8.5,
+    "reference_max": 10.5,
+    "aliases": ["cálcio", "calcio"]
+  },
+  {
+    "code": "FE",
+    "name": "Ferro Sérico",
+    "category": "Bioquímica",
+    "unit": "µg/dL",
+    "reference_min": 60.0,
+    "reference_max": 170.0,
+    "aliases": ["ferro sérico", "ferro serico"]
+  },
+  {
+    "code": "FERR",
+    "name": "Ferritina",
+    "category": "Bioquímica",
+    "unit": "ng/mL",
+    "reference_min": 15.0,
+    "reference_max": 150.0,
+    "aliases": ["ferritina"]
+  },
+  {
+    "code": "PCR",
+    "name": "Proteína C Reativa",
+    "category": "Bioquímica",
+    "unit": "mg/L",
+    "reference_min": null,
+    "reference_max": 5.0,
+    "aliases": ["proteína c reativa", "proteina c reativa", "pcr"]
+  },
+  {
+    "code": "VHS",
+    "name": "VHS",
+    "category": "Bioquímica",
+    "unit": "mm/h",
+    "reference_min": null,
+    "reference_max": 20.0,
+    "aliases": ["velocidade de hemossedimentação", "vhs"]
+  }
+]

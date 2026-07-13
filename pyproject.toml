@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "blood-exam-transcriber"
+version = "0.1.0"
+description = "Transcreve laudos de exames de sangue (texto) para um padrão estruturado definido."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+
+[project.scripts]
+blood-exam-transcriber = "blood_exam_transcriber.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["blood_exam_transcriber*"]
+
+[tool.setuptools.package-data]
+blood_exam_transcriber = ["data/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

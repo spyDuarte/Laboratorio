@@ -55,14 +55,37 @@ def _limpar_unidade(bruto: str) -> str:
     return unidade.strip()
 
 
+def _intervalos_delimitados(linha: str) -> list[tuple[int, int]]:
+    """Faixas [inicio, fim] cobertas por pares balanceados de () e []."""
+    pilha: list[int] = []
+    faixas: list[tuple[int, int]] = []
+    for i, ch in enumerate(linha):
+        if ch in "([":
+            pilha.append(i)
+        elif ch in ")]" and pilha:
+            faixas.append((pilha.pop(), i))
+    return faixas
+
+
+def _dentro_de_delimitador(idx: int, faixas: list[tuple[int, int]]) -> bool:
+    return any(ini < idx < fim for ini, fim in faixas)
+
+
 def parse_linha(linha: str) -> Optional[ItemBruto]:
     """Extrai um ItemBruto de uma linha, ou None se não houver valor."""
     matches = list(VALOR_RE.finditer(linha))
     if not matches:
         return None
 
+    # Números dentro de parênteses/colchetes normalmente são intervalos de
+    # referência (ex.: "Glicose 92 mg/dL (70-99)") — descartados na escolha
+    # do valor medido.
+    faixas = _intervalos_delimitados(linha)
+    fora = [m for m in matches if not _dentro_de_delimitador(m.start(), faixas)]
+    usaveis = fora if fora else matches
+
     # O valor medido é o último número "solto" da linha.
-    m = matches[-1]
+    m = usaveis[-1]
     limite_raw = (m.group(1) or "").strip()
     limite = None
     if limite_raw:

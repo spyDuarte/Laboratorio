@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  testes:
+  testes-python:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -17,7 +17,18 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Rodar testes
+      - name: Rodar testes (Python)
         run: python -m unittest discover -s tests -v
       - name: Verificar CLI com o laudo de exemplo
         run: python cli.py exemplos/exame_exemplo.txt
+
+  testes-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Rodar testes (JavaScript / núcleo web)
+        run: node --test tests/transcritor.test.mjs

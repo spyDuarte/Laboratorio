@@ -45,7 +45,20 @@ relatorio = build_report(texto)
 print(report_to_json(relatorio))
 ```
 
-Exemplo de saída (resumida):
+## Analitos suportados
+
+| Categoria        | Exames |
+|------------------|--------|
+| Hemograma        | Hemoglobina, Hematócrito, Eritrócitos, Leucócitos, Plaquetas, VCM, HCM, CHCM, RDW |
+| Bioquímica       | Glicose, HbA1c, Ureia, Creatinina, Ácido úrico, Ferro sérico, LDH, CK/CPK, Amilase, Lipase |
+| Lipidograma      | Colesterol total, HDL, LDL, VLDL, Triglicerídeos |
+| Função hepática  | AST (TGO), ALT (TGP), Gama GT, Fosfatase alcalina, Bilirrubina total/direta/indireta, Proteínas totais, Albumina |
+| Eletrólitos      | Sódio, Potássio, Cloro, Cálcio, Magnésio, Fósforo |
+| Tireoide         | TSH, T4 livre, T3 total |
+| Outros           | Ferritina, Vitamina D (25-OH), Vitamina B12, PCR, VHS |
+
+São **47 analitos** no total. O parser ignora faixas de referência escritas
+na mesma linha entre parênteses ou colchetes (ex.: `Glicose 92 mg/dL (70-99)`).
 
 ```json
 {
@@ -77,10 +90,13 @@ O catálogo em `blood_exam_transcriber/data/standard_catalog.json` é a fonte da
 ## Testes
 
 ```bash
-pip install -e . -r requirements.txt
-pytest
+# Núcleo Python (biblioteca padrão)
+python -m unittest discover -s tests -v
+
+# Núcleo JavaScript da versão web (runner nativo do Node, sem dependências)
+node --test tests/transcritor.test.mjs
 ```
 
-## Limitações
-
-Este projeto usa reconhecimento por texto e expressões regulares; não realiza OCR nem interpretação clínica. Para laudos em PDF/imagem, extraia o texto antes (ex.: `pdftotext`, `pdfplumber`, OCR) e alimente o resultado a esta ferramenta. As faixas de referência padrão do catálogo são valores de referência gerais para adultos e podem não refletir os valores de um laboratório específico — sempre que o laudo traz sua própria faixa de referência, ela é priorizada.
+A CI do GitHub (`.github/workflows/ci.yml`) roda os testes de Python
+(3.9–3.12) e de JavaScript a cada push e pull request, garantindo que as
+duas implementações permaneçam em paridade.

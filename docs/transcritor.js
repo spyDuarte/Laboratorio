@@ -88,11 +88,33 @@ function limparUnidade(bruto) {
   return unidade.trim();
 }
 
+function intervalosDelimitados(linha) {
+  const pilha = [];
+  const faixas = [];
+  for (let i = 0; i < linha.length; i++) {
+    const ch = linha[i];
+    if (ch === "(" || ch === "[") pilha.push(i);
+    else if ((ch === ")" || ch === "]") && pilha.length) faixas.push([pilha.pop(), i]);
+  }
+  return faixas;
+}
+
+function dentroDeDelimitador(idx, faixas) {
+  return faixas.some(([ini, fim]) => ini < idx && idx < fim);
+}
+
 export function parseLinha(linha) {
   const matches = [...linha.matchAll(VALOR_RE)];
   if (!matches.length) return null;
 
-  const m = matches[matches.length - 1];
+  // Números dentro de parênteses/colchetes normalmente são intervalos de
+  // referência (ex.: "Glicose 92 mg/dL (70-99)") — descartados na escolha
+  // do valor medido.
+  const faixas = intervalosDelimitados(linha);
+  const fora = matches.filter((m) => !dentroDeDelimitador(m.index, faixas));
+  const usaveis = fora.length ? fora : matches;
+
+  const m = usaveis[usaveis.length - 1];
   const limiteRaw = (m[1] || "").trim();
   let limite = null;
   if (limiteRaw) limite = "<≤".includes(limiteRaw[0]) ? "<" : ">";
@@ -145,6 +167,10 @@ const MMOLL_COLEST = 38.67;
 const MMOLL_TRIG = 88.57;
 const UMOLL_CREAT = 1 / 88.42;
 const MMOLL_UREIA = 6.006;
+const MMOLL_CALCIO = 4.008;
+const MMOLL_MAGNESIO = 2.43;
+const MMOLL_FOSFORO = 3.097;
+const UMOLL_FERRO = 5.587;
 
 export const CATALOGO = [
   // Hemograma
@@ -199,6 +225,9 @@ export const CATALOGO = [
   mk("2571-8", "Triglicerídeos", "Lipidograma", "mg/dL",
     ["triglicerideos", "triglicerides", "trigliceridios", "tg"], { "mmol/l": MMOLL_TRIG },
     { geral: [null, 149.0] }, "Desejável < 150 mg/dL"),
+  mk("13458-5", "Colesterol VLDL", "Lipidograma", "mg/dL",
+    ["colesterol vldl", "vldl colesterol", "vldl"], { "mmol/l": MMOLL_COLEST },
+    { geral: [null, 30.0] }, "Desejável < 30 mg/dL"),
 
   // Função hepática
   mk("1920-8", "AST (TGO)", "Função hepática", "U/L",
@@ -214,18 +243,51 @@ export const CATALOGO = [
     ["fosfatase alcalina", "fal", "alp"], {}, { geral: [40.0, 129.0] }),
   mk("1975-2", "Bilirrubina total", "Função hepática", "mg/dL",
     ["bilirrubina total", "bt bilirrubina", "bilirrubina"], {}, { geral: [0.1, 1.2] }),
+  mk("1968-7", "Bilirrubina direta", "Função hepática", "mg/dL",
+    ["bilirrubina direta", "bd bilirrubina", "bilirrubina conjugada"], {},
+    { geral: [0.0, 0.3] }),
+  mk("1971-1", "Bilirrubina indireta", "Função hepática", "mg/dL",
+    ["bilirrubina indireta", "bi bilirrubina", "bilirrubina nao conjugada"], {},
+    { geral: [0.1, 0.8] }),
+  mk("2885-2", "Proteínas totais", "Função hepática", "g/dL",
+    ["proteinas totais", "proteina total", "proteinas totais e fracoes"], {},
+    { geral: [6.0, 8.3] }),
+  mk("1751-7", "Albumina", "Função hepática", "g/dL", ["albumina", "alb"], {},
+    { geral: [3.5, 5.2] }),
 
   // Eletrólitos
   mk("2951-2", "Sódio", "Eletrólitos", "mmol/L", ["sodio", "na"], {},
     { geral: [135.0, 145.0] }),
   mk("2823-3", "Potássio", "Eletrólitos", "mmol/L", ["potassio", "k"], {},
     { geral: [3.5, 5.1] }),
+  mk("2075-0", "Cloro", "Eletrólitos", "mmol/L", ["cloro", "cloreto"], {},
+    { geral: [98.0, 107.0] }),
+  mk("17861-6", "Cálcio total", "Eletrólitos", "mg/dL",
+    ["calcio", "calcio total", "ca"], { "mmol/l": MMOLL_CALCIO }, { geral: [8.5, 10.5] }),
+  mk("2601-3", "Magnésio", "Eletrólitos", "mg/dL", ["magnesio", "mg"],
+    { "mmol/l": MMOLL_MAGNESIO }, { geral: [1.6, 2.6] }),
+  mk("2777-1", "Fósforo", "Eletrólitos", "mg/dL",
+    ["fosforo", "fosforo inorganico", "fosfato"], { "mmol/l": MMOLL_FOSFORO },
+    { geral: [2.5, 4.5] }),
+  mk("2498-4", "Ferro sérico", "Bioquímica", "µg/dL", ["ferro serico", "ferro"],
+    { "umol/l": UMOLL_FERRO },
+    { geral: [50.0, 175.0], M: [65.0, 175.0], F: [50.0, 170.0] }),
+  mk("2532-0", "Desidrogenase láctica (LDH)", "Bioquímica", "U/L",
+    ["desidrogenase latica", "lactato desidrogenase", "ldh", "dhl"], {},
+    { geral: [120.0, 246.0] }),
+  mk("2157-6", "Creatinoquinase (CK/CPK)", "Bioquímica", "U/L",
+    ["creatinoquinase", "creatina quinase", "creatinofosfoquinase", "cpk", "ck"], {},
+    { geral: [26.0, 308.0], M: [39.0, 308.0], F: [26.0, 192.0] }),
+  mk("1798-8", "Amilase", "Bioquímica", "U/L", ["amilase"], {}, { geral: [28.0, 100.0] }),
+  mk("3040-3", "Lipase", "Bioquímica", "U/L", ["lipase"], {}, { geral: [13.0, 60.0] }),
 
   // Tireoide
   mk("3016-3", "TSH", "Tireoide", "µUI/mL",
     ["tsh", "hormonio tireoestimulante", "tireotrofina"], {}, { geral: [0.4, 4.0] }),
   mk("3024-7", "T4 livre", "Tireoide", "ng/dL", ["t4 livre", "tiroxina livre", "ft4"], {},
     { geral: [0.8, 1.8] }),
+  mk("3053-6", "T3 total", "Tireoide", "ng/dL", ["t3", "t3 total", "triiodotironina"], {},
+    { geral: [80.0, 200.0] }),
 
   // Outros
   mk("2276-4", "Ferritina", "Outros", "ng/mL", ["ferritina"], {},
@@ -239,6 +301,9 @@ export const CATALOGO = [
   mk("1988-5", "Proteína C reativa (PCR)", "Outros", "mg/L",
     ["proteina c reativa", "pcr", "pcr ultrassensivel", "crp"], {},
     { geral: [null, 5.0] }, "Valores < 5 mg/L; > 3 mg/L indica risco cardiovascular"),
+  mk("30341-2", "VHS", "Outros", "mm/h",
+    ["vhs", "velocidade de hemossedimentacao", "hemossedimentacao", "vsg"], {},
+    { geral: [null, 20.0] }, "Referência varia por idade e sexo"),
 ];
 
 const INDICE_SINONIMOS = [];
@@ -548,29 +613,46 @@ CHCM .......................... 33,5 g/dL
 RDW ........................... 13,2 %
 
 BIOQUÍMICA
-Glicose de jejum .............. 92 mg/dL
+Glicose de jejum .............. 92 mg/dL (VR: 70 - 99)
 Hemoglobina glicada (HbA1c) ... 5,4 %
 Ureia ......................... 32 mg/dL
 Creatinina .................... 0,95 mg/dL
 Ácido úrico ................... 5,1 mg/dL
+Ferro sérico .................. 90 µg/dL
+LDH ........................... 190 U/L
 
 LIPIDOGRAMA
 Colesterol Total .............. 210 mg/dL
 Colesterol HDL ................ 38 mg/dL
 Colesterol LDL ................ 142 mg/dL
+Colesterol VLDL ............... 36 mg/dL
 Triglicerídeos ................ 180 mg/dL
 
 FUNÇÃO HEPÁTICA
 TGO (AST) ..................... 28 U/L
 TGP (ALT) ..................... 35 U/L
 Gama GT ....................... 45 U/L
+Proteínas totais .............. 7,2 g/dL
+Albumina ...................... 4,3 g/dL
+Bilirrubina total ............. 0,8 mg/dL
+Bilirrubina direta ............ 0,2 mg/dL
+
+ELETRÓLITOS
+Sódio ......................... 140 mmol/L
+Potássio ...................... 4,3 mmol/L
+Cloro ......................... 103 mmol/L
+Cálcio ........................ 9,4 mg/dL
+Magnésio ...................... 2,0 mg/dL
+Fósforo ....................... 3,4 mg/dL
 
 TIREOIDE
 TSH ........................... 2,1 µUI/mL
 T4 livre ...................... 1,3 ng/dL
+T3 total ...................... 130 ng/dL
 
 OUTROS
 Vitamina D (25-OH) ............ 24 ng/mL
 Vitamina B12 .................. 450 pg/mL
 Ferritina ..................... 120 ng/mL
-PCR ........................... < 5 mg/L`;
+PCR ........................... < 5 mg/L
+VHS ........................... 12 mm/h`;

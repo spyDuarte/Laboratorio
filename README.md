@@ -1,14 +1,14 @@
 # Laboratorio
 
-Ferramenta em Python para **transcrever laudos de exames de sangue (texto) para um padrão estruturado definido**.
+Ferramenta para **transcrever exames de sangue para um padrão canônico definido**, de duas formas: digitando os exames rapidamente (por busca e valor) ou colando o texto livre de um laudo. Devolve os resultados normalizados — nome padronizado, abreviação, código **LOINC**, valor, unidade, faixa de referência e situação (`baixo` / `normal` / `alto`) — em JSON ou texto, no nível **completo** ou **reduzido**.
 
-Recebe o texto de um laudo (por exemplo, extraído de um PDF/OCR) e devolve os resultados normalizados — nome padronizado do exame, valor, unidade, faixa de referência e situação (`baixo` / `normal` / `alto`) — em JSON ou CSV, prontos para armazenamento, integração ou análise.
+Há duas implementações mantidas em paridade: um núcleo em **Python** (`transcritor/`, biblioteca + CLI) e um núcleo em **JavaScript** (`docs/`, a interface web que roda 100% no navegador, publicada via GitHub Pages).
 
 ## Como funciona
 
-1. Um **catálogo padrão** (`blood_exam_transcriber/data/standard_catalog.json`) define, para cada exame, o código, nome padronizado, categoria, unidade, faixa de referência padrão e os apelidos/sinônimos usados em laudos (ex.: "Hemoglobina", "Hb", "HGB").
-2. O **parser** (`blood_exam_transcriber/parser.py`) varre o texto linha a linha, identifica exames conhecidos pelo apelido (ignorando acentos e maiúsculas/minúsculas), extrai valor, unidade e faixa de referência informados no próprio laudo (ou usa a faixa padrão do catálogo quando o laudo não traz uma) e calcula a situação do resultado.
-3. O **transcritor** (`blood_exam_transcriber/transcriber.py`) monta o relatório final, incluindo metadados simples do laudo (paciente, data), e exporta para JSON ou CSV.
+1. Um **catálogo canônico** (`transcritor/catalogo.py` e o espelho em `docs/transcritor.js`) define, para cada exame, o código LOINC, nome padronizado, abreviação, categoria, unidade, fatores de conversão de unidade, faixa de referência (inclusive por sexo) e os sinônimos reconhecidos em laudos.
+2. O **parser** (`transcritor/parser.py`) varre o texto linha a linha, identifica exames pelo sinônimo (ignorando acentos e maiúsculas/minúsculas), extrai valor, unidade e faixa de referência informados no próprio laudo, converte para a unidade canônica quando necessário e calcula a situação do resultado.
+3. O **transcritor** (`transcritor/transcritor.py`) monta a saída final, incluindo metadados simples do laudo (paciente, data, sexo), e exporta em JSON ou texto, no nível completo ou reduzido.
 
 ## Instalação
 
@@ -16,33 +16,28 @@ Recebe o texto de um laudo (por exemplo, extraído de um PDF/OCR) e devolve os r
 pip install -e .
 ```
 
+Isso instala o pacote `transcritor` e o comando `transcritor`. Também é possível
+rodar direto do repositório, sem instalar, via `python cli.py`.
+
 ## Uso via linha de comando
 
 ```bash
-python -m blood_exam_transcriber examples/sample_exam.txt
+python cli.py exemplos/exame_exemplo.txt
+python cli.py exemplos/exame_exemplo.txt --formato json --sexo M
+cat laudo.txt | python cli.py --nivel reduzido
 ```
 
-Ou, após instalado:
-
-```bash
-blood-exam-transcriber examples/sample_exam.txt --format json
-blood-exam-transcriber examples/sample_exam.txt --format csv -o resultado.csv
-```
-
-Também é possível apontar para um catálogo padrão customizado:
-
-```bash
-blood-exam-transcriber laudo.txt --catalog meu_catalogo.json
-```
+Ou, após instalado, usando o comando `transcritor` no lugar de `python cli.py`.
 
 ## Uso como biblioteca
 
 ```python
-from blood_exam_transcriber import build_report, report_to_json
+from transcritor import transcrever, para_json, para_relatorio
 
-texto = open("examples/sample_exam.txt", encoding="utf-8").read()
-relatorio = build_report(texto)
-print(report_to_json(relatorio))
+texto = open("exemplos/exame_exemplo.txt", encoding="utf-8").read()
+transcricao = transcrever(texto, sexo="M")
+print(para_relatorio(transcricao))            # relatório completo em texto
+print(para_json(transcricao, formato="reduzido"))  # JSON reduzido
 ```
 
 ## Analitos suportados
@@ -160,12 +155,16 @@ JSON reduzido (`--formato json --nivel reduzido`):
 
 ## Personalizando o padrão
 
-O catálogo em `blood_exam_transcriber/data/standard_catalog.json` é a fonte da verdade do "padrão" de transcrição. Para adicionar um novo exame ou ajustar nomes/unidades/faixas de referência padrão, edite (ou substitua via `--catalog`) esse arquivo — não é necessário alterar código.
+O catálogo é a fonte da verdade do "padrão" de transcrição. Para adicionar um
+novo exame ou ajustar nome/abreviação/unidade/faixa de referência, edite
+`transcritor/catalogo.py` (Python) e o espelho em `docs/transcritor.js`
+(JavaScript) — os testes verificam que os dois permaneçam em paridade. Os
+modelos pré-definidos (HAS, DM) ficam em `MODELOS`, em `docs/transcritor.js`.
 
 ## Testes
 
 ```bash
-# Núcleo Python (biblioteca padrão)
+# Núcleo Python (apenas biblioteca padrão, sem dependências externas)
 python -m unittest discover -s tests -v
 
 # Núcleo JavaScript da versão web (runner nativo do Node, sem dependências)

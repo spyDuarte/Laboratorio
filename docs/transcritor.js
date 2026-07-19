@@ -146,13 +146,14 @@ export function parseTexto(texto) {
 
 /* --------------------------------------------------------------- catálogo */
 
-function mk(codigo, nome, categoria, unidade, sinonimos, conversoes, referencia, observacao) {
+function mk(codigo, abreviacao, nome, categoria, unidade, sinonimos, conversoes, referencia, observacao) {
   const sin = [...new Set(sinonimos.map(normalizarNome))];
   const conv = {};
   for (const [u, f] of Object.entries(conversoes || {})) conv[normalizarUnidade(u)] = f;
   return {
     codigoLoinc: codigo,
     nome,
+    abreviacao,
     categoria,
     unidade,
     sinonimos: sin,
@@ -174,134 +175,134 @@ const UMOLL_FERRO = 5.587;
 
 export const CATALOGO = [
   // Hemograma
-  mk("718-7", "Hemoglobina", "Hemograma", "g/dL", ["hemoglobina", "hb", "hgb"],
+  mk("718-7", "HB", "Hemoglobina", "Hemograma", "g/dL", ["hemoglobina", "hb", "hgb"],
     { "g/l": 0.1 },
     { geral: [12.0, 17.5], M: [13.5, 17.5], F: [12.0, 16.0] }),
-  mk("4544-3", "Hematócrito", "Hemograma", "%", ["hematocrito", "ht", "hct"], {},
+  mk("4544-3", "HT", "Hematócrito", "Hemograma", "%", ["hematocrito", "ht", "hct"], {},
     { geral: [36.0, 53.0], M: [41.0, 53.0], F: [36.0, 46.0] }),
-  mk("789-8", "Eritrócitos", "Hemograma", "milhões/mm³",
+  mk("789-8", "HM", "Eritrócitos", "Hemograma", "milhões/mm³",
     ["eritrocitos", "hemacias", "hemaceas", "rbc", "serie vermelha"],
     { "10e6/ul": 1.0, "milhoes/mm3": 1.0, "10e12/l": 1.0, "/mm3": 1e-6, "/ul": 1e-6 },
     { geral: [4.0, 5.9], M: [4.5, 5.9], F: [4.0, 5.2] }),
-  mk("6690-2", "Leucócitos", "Hemograma", "/mm³",
+  mk("6690-2", "LEUC", "Leucócitos", "Hemograma", "/mm³",
     ["leucocitos", "wbc", "globulos brancos", "serie branca"],
     { "10e3/ul": 1000.0, "mil/mm3": 1000.0, "10e9/l": 1000.0, "/mm3": 1.0, "/ul": 1.0 },
     { geral: [4000.0, 11000.0] }),
-  mk("777-3", "Plaquetas", "Hemograma", "/mm³", ["plaquetas", "plt", "plaquetometria"],
+  mk("777-3", "PLAQ", "Plaquetas", "Hemograma", "/mm³", ["plaquetas", "plt", "plaquetometria"],
     { "10e3/ul": 1000.0, "mil/mm3": 1000.0, "10e9/l": 1000.0, "/mm3": 1.0, "/ul": 1.0 },
     { geral: [150000.0, 450000.0] }),
-  mk("787-2", "VCM", "Hemograma", "fL", ["vcm", "volume corpuscular medio", "mcv"], {},
+  mk("787-2", "VCM", "VCM", "Hemograma", "fL", ["vcm", "volume corpuscular medio", "mcv"], {},
     { geral: [80.0, 100.0] }),
-  mk("785-6", "HCM", "Hemograma", "pg", ["hcm", "hemoglobina corpuscular media", "mch"], {},
+  mk("785-6", "HCM", "HCM", "Hemograma", "pg", ["hcm", "hemoglobina corpuscular media", "mch"], {},
     { geral: [27.0, 33.0] }),
-  mk("786-4", "CHCM", "Hemograma", "g/dL",
+  mk("786-4", "CHCM", "CHCM", "Hemograma", "g/dL",
     ["chcm", "concentracao de hemoglobina corpuscular media", "mchc"], {},
     { geral: [32.0, 36.0] }),
-  mk("788-0", "RDW", "Hemograma", "%", ["rdw", "red cell distribution width"], {},
+  mk("788-0", "RDW", "RDW", "Hemograma", "%", ["rdw", "red cell distribution width"], {},
     { geral: [11.5, 14.5] }),
 
   // Bioquímica
-  mk("2345-7", "Glicose", "Bioquímica", "mg/dL",
+  mk("2345-7", "GLIC", "Glicose", "Bioquímica", "mg/dL",
     ["glicose", "glicemia", "glicemia de jejum", "glicose de jejum", "glicose em jejum"],
     { "mmol/l": MMOLL_GLICOSE }, { geral: [70.0, 99.0] }),
-  mk("4548-4", "Hemoglobina glicada (HbA1c)", "Bioquímica", "%",
+  mk("4548-4", "HBA1C", "Hemoglobina glicada (HbA1c)", "Bioquímica", "%",
     ["hemoglobina glicada", "hba1c", "hb glicada", "a1c", "hemoglobina glicosilada"], {},
     { geral: [4.0, 5.6] }),
-  mk("3094-0", "Ureia", "Bioquímica", "mg/dL", ["ureia", "uréia"],
+  mk("3094-0", "UR", "Ureia", "Bioquímica", "mg/dL", ["ureia", "uréia"],
     { "mmol/l": MMOLL_UREIA }, { geral: [15.0, 45.0] }),
-  mk("2160-0", "Creatinina", "Bioquímica", "mg/dL", ["creatinina"],
+  mk("2160-0", "CREAT", "Creatinina", "Bioquímica", "mg/dL", ["creatinina"],
     { "umol/l": UMOLL_CREAT }, { geral: [0.6, 1.3], M: [0.7, 1.3], F: [0.6, 1.1] }),
-  mk("3084-1", "Ácido úrico", "Bioquímica", "mg/dL", ["acido urico", "urato"], {},
+  mk("3084-1", "AU", "Ácido úrico", "Bioquímica", "mg/dL", ["acido urico", "urato"], {},
     { geral: [2.4, 7.0], M: [3.4, 7.0], F: [2.4, 6.0] }),
-  mk("2093-3", "Colesterol total", "Lipidograma", "mg/dL",
+  mk("2093-3", "CT", "Colesterol total", "Lipidograma", "mg/dL",
     ["colesterol total", "colesterol"], { "mmol/l": MMOLL_COLEST },
     { geral: [null, 199.0] }, "Desejável < 200 mg/dL"),
-  mk("2085-9", "Colesterol HDL", "Lipidograma", "mg/dL",
+  mk("2085-9", "HDL", "Colesterol HDL", "Lipidograma", "mg/dL",
     ["colesterol hdl", "hdl colesterol", "hdl", "hdl c"], { "mmol/l": MMOLL_COLEST },
     { geral: [40.0, null] }, "Desejável > 40 mg/dL"),
-  mk("2089-1", "Colesterol LDL", "Lipidograma", "mg/dL",
+  mk("2089-1", "LDL", "Colesterol LDL", "Lipidograma", "mg/dL",
     ["colesterol ldl", "ldl colesterol", "ldl", "ldl c"], { "mmol/l": MMOLL_COLEST },
     { geral: [null, 129.0] }, "Desejável < 130 mg/dL"),
-  mk("2571-8", "Triglicerídeos", "Lipidograma", "mg/dL",
+  mk("2571-8", "TG", "Triglicerídeos", "Lipidograma", "mg/dL",
     ["triglicerideos", "triglicerides", "trigliceridios", "tg"], { "mmol/l": MMOLL_TRIG },
     { geral: [null, 149.0] }, "Desejável < 150 mg/dL"),
-  mk("13458-5", "Colesterol VLDL", "Lipidograma", "mg/dL",
+  mk("13458-5", "VLDL", "Colesterol VLDL", "Lipidograma", "mg/dL",
     ["colesterol vldl", "vldl colesterol", "vldl"], { "mmol/l": MMOLL_COLEST },
     { geral: [null, 30.0] }, "Desejável < 30 mg/dL"),
 
   // Função hepática
-  mk("1920-8", "AST (TGO)", "Função hepática", "U/L",
+  mk("1920-8", "TGO", "AST (TGO)", "Função hepática", "U/L",
     ["ast", "tgo", "aspartato aminotransferase", "transaminase oxalacetica"], {},
     { geral: [5.0, 40.0] }),
-  mk("1742-6", "ALT (TGP)", "Função hepática", "U/L",
+  mk("1742-6", "TGP", "ALT (TGP)", "Função hepática", "U/L",
     ["alt", "tgp", "alanina aminotransferase", "transaminase piruvica"], {},
     { geral: [7.0, 56.0] }),
-  mk("2324-2", "Gama GT (GGT)", "Função hepática", "U/L",
+  mk("2324-2", "GGT", "Gama GT (GGT)", "Função hepática", "U/L",
     ["gama gt", "gamagt", "ggt", "gama glutamil transferase", "gama glutamiltransferase"], {},
     { geral: [5.0, 61.0], M: [8.0, 61.0], F: [5.0, 36.0] }),
-  mk("6768-6", "Fosfatase alcalina", "Função hepática", "U/L",
+  mk("6768-6", "FA", "Fosfatase alcalina", "Função hepática", "U/L",
     ["fosfatase alcalina", "fal", "alp"], {}, { geral: [40.0, 129.0] }),
-  mk("1975-2", "Bilirrubina total", "Função hepática", "mg/dL",
+  mk("1975-2", "BT", "Bilirrubina total", "Função hepática", "mg/dL",
     ["bilirrubina total", "bt bilirrubina", "bilirrubina"], {}, { geral: [0.1, 1.2] }),
-  mk("1968-7", "Bilirrubina direta", "Função hepática", "mg/dL",
+  mk("1968-7", "BD", "Bilirrubina direta", "Função hepática", "mg/dL",
     ["bilirrubina direta", "bd bilirrubina", "bilirrubina conjugada"], {},
     { geral: [0.0, 0.3] }),
-  mk("1971-1", "Bilirrubina indireta", "Função hepática", "mg/dL",
+  mk("1971-1", "BI", "Bilirrubina indireta", "Função hepática", "mg/dL",
     ["bilirrubina indireta", "bi bilirrubina", "bilirrubina nao conjugada"], {},
     { geral: [0.1, 0.8] }),
-  mk("2885-2", "Proteínas totais", "Função hepática", "g/dL",
+  mk("2885-2", "PT", "Proteínas totais", "Função hepática", "g/dL",
     ["proteinas totais", "proteina total", "proteinas totais e fracoes"], {},
     { geral: [6.0, 8.3] }),
-  mk("1751-7", "Albumina", "Função hepática", "g/dL", ["albumina", "alb"], {},
+  mk("1751-7", "ALB", "Albumina", "Função hepática", "g/dL", ["albumina", "alb"], {},
     { geral: [3.5, 5.2] }),
 
   // Eletrólitos
-  mk("2951-2", "Sódio", "Eletrólitos", "mmol/L", ["sodio", "na"], {},
+  mk("2951-2", "NA", "Sódio", "Eletrólitos", "mmol/L", ["sodio", "na"], {},
     { geral: [135.0, 145.0] }),
-  mk("2823-3", "Potássio", "Eletrólitos", "mmol/L", ["potassio", "k"], {},
+  mk("2823-3", "K", "Potássio", "Eletrólitos", "mmol/L", ["potassio", "k"], {},
     { geral: [3.5, 5.1] }),
-  mk("2075-0", "Cloro", "Eletrólitos", "mmol/L", ["cloro", "cloreto"], {},
+  mk("2075-0", "CL", "Cloro", "Eletrólitos", "mmol/L", ["cloro", "cloreto"], {},
     { geral: [98.0, 107.0] }),
-  mk("17861-6", "Cálcio total", "Eletrólitos", "mg/dL",
+  mk("17861-6", "CA", "Cálcio total", "Eletrólitos", "mg/dL",
     ["calcio", "calcio total", "ca"], { "mmol/l": MMOLL_CALCIO }, { geral: [8.5, 10.5] }),
-  mk("2601-3", "Magnésio", "Eletrólitos", "mg/dL", ["magnesio", "mg"],
+  mk("2601-3", "MG", "Magnésio", "Eletrólitos", "mg/dL", ["magnesio", "mg"],
     { "mmol/l": MMOLL_MAGNESIO }, { geral: [1.6, 2.6] }),
-  mk("2777-1", "Fósforo", "Eletrólitos", "mg/dL",
+  mk("2777-1", "P", "Fósforo", "Eletrólitos", "mg/dL",
     ["fosforo", "fosforo inorganico", "fosfato"], { "mmol/l": MMOLL_FOSFORO },
     { geral: [2.5, 4.5] }),
-  mk("2498-4", "Ferro sérico", "Bioquímica", "µg/dL", ["ferro serico", "ferro"],
+  mk("2498-4", "FE", "Ferro sérico", "Bioquímica", "µg/dL", ["ferro serico", "ferro"],
     { "umol/l": UMOLL_FERRO },
     { geral: [50.0, 175.0], M: [65.0, 175.0], F: [50.0, 170.0] }),
-  mk("2532-0", "Desidrogenase láctica (LDH)", "Bioquímica", "U/L",
+  mk("2532-0", "LDH", "Desidrogenase láctica (LDH)", "Bioquímica", "U/L",
     ["desidrogenase latica", "lactato desidrogenase", "ldh", "dhl"], {},
     { geral: [120.0, 246.0] }),
-  mk("2157-6", "Creatinoquinase (CK/CPK)", "Bioquímica", "U/L",
+  mk("2157-6", "CK", "Creatinoquinase (CK/CPK)", "Bioquímica", "U/L",
     ["creatinoquinase", "creatina quinase", "creatinofosfoquinase", "cpk", "ck"], {},
     { geral: [26.0, 308.0], M: [39.0, 308.0], F: [26.0, 192.0] }),
-  mk("1798-8", "Amilase", "Bioquímica", "U/L", ["amilase"], {}, { geral: [28.0, 100.0] }),
-  mk("3040-3", "Lipase", "Bioquímica", "U/L", ["lipase"], {}, { geral: [13.0, 60.0] }),
+  mk("1798-8", "AMI", "Amilase", "Bioquímica", "U/L", ["amilase"], {}, { geral: [28.0, 100.0] }),
+  mk("3040-3", "LIP", "Lipase", "Bioquímica", "U/L", ["lipase"], {}, { geral: [13.0, 60.0] }),
 
   // Tireoide
-  mk("3016-3", "TSH", "Tireoide", "µUI/mL",
+  mk("3016-3", "TSH", "TSH", "Tireoide", "µUI/mL",
     ["tsh", "hormonio tireoestimulante", "tireotrofina"], {}, { geral: [0.4, 4.0] }),
-  mk("3024-7", "T4 livre", "Tireoide", "ng/dL", ["t4 livre", "tiroxina livre", "ft4"], {},
+  mk("3024-7", "T4L", "T4 livre", "Tireoide", "ng/dL", ["t4 livre", "tiroxina livre", "ft4"], {},
     { geral: [0.8, 1.8] }),
-  mk("3053-6", "T3 total", "Tireoide", "ng/dL", ["t3", "t3 total", "triiodotironina"], {},
+  mk("3053-6", "T3", "T3 total", "Tireoide", "ng/dL", ["t3", "t3 total", "triiodotironina"], {},
     { geral: [80.0, 200.0] }),
 
   // Outros
-  mk("2276-4", "Ferritina", "Outros", "ng/mL", ["ferritina"], {},
+  mk("2276-4", "FERR", "Ferritina", "Outros", "ng/mL", ["ferritina"], {},
     { geral: [15.0, 400.0], M: [30.0, 400.0], F: [15.0, 150.0] }),
-  mk("1989-3", "Vitamina D (25-OH)", "Outros", "ng/mL",
+  mk("1989-3", "VITD", "Vitamina D (25-OH)", "Outros", "ng/mL",
     ["vitamina d", "vitamina d 25 oh", "25 oh vitamina d", "25 hidroxivitamina d",
       "25 hidroxi vitamina d", "vitamina d 25 hidroxi"], {},
     { geral: [30.0, 100.0] }, "Suficiência: 30-100 ng/mL"),
-  mk("2132-9", "Vitamina B12", "Outros", "pg/mL",
+  mk("2132-9", "B12", "Vitamina B12", "Outros", "pg/mL",
     ["vitamina b12", "b12", "cobalamina", "cianocobalamina"], {}, { geral: [200.0, 900.0] }),
-  mk("1988-5", "Proteína C reativa (PCR)", "Outros", "mg/L",
+  mk("1988-5", "PCR", "Proteína C reativa (PCR)", "Outros", "mg/L",
     ["proteina c reativa", "pcr", "pcr ultrassensivel", "crp"], {},
     { geral: [null, 5.0] }, "Valores < 5 mg/L; > 3 mg/L indica risco cardiovascular"),
-  mk("30341-2", "VHS", "Outros", "mm/h",
+  mk("30341-2", "VHS", "VHS", "Outros", "mm/h",
     ["vhs", "velocidade de hemossedimentacao", "hemossedimentacao", "vsg"], {},
     { geral: [null, 20.0] }, "Referência varia por idade e sexo"),
 ];
@@ -354,6 +355,7 @@ function normalizarItem(item, sexo) {
   if (analito == null) {
     return {
       analito: item.nomeOriginal.trim(),
+      abreviacao: "",
       categoria: "Não catalogado",
       codigo_loinc: null,
       valor: valorOrigem,
@@ -403,6 +405,7 @@ function normalizarItem(item, sexo) {
 
   return {
     analito: analito.nome,
+    abreviacao: analito.abreviacao,
     categoria: analito.categoria,
     codigo_loinc: analito.codigoLoinc,
     valor,
@@ -518,7 +521,25 @@ export function transcrever(texto, sexo = null, metadados = null) {
   return { metadados: meta, resultados, nao_reconhecidos: naoReconhecidos };
 }
 
-export function paraJson(transcricao, indent = 2) {
+const META_REDUZIDA = ["paciente", "data_coleta", "sexo"];
+
+export function reduzir(transcricao) {
+  return transcricao.resultados.map((r) => ({
+    abreviacao: r.abreviacao || r.analito,
+    valor: r.valor,
+    unidade: r.unidade,
+    limite: r.limite,
+  }));
+}
+
+export function paraJson(transcricao, formato = "completo", indent = 2) {
+  if (formato === "reduzido") {
+    const metadados = {};
+    for (const chave of META_REDUZIDA) {
+      if (chave in transcricao.metadados) metadados[chave] = transcricao.metadados[chave];
+    }
+    return JSON.stringify({ metadados, exames: reduzir(transcricao) }, null, indent);
+  }
   return JSON.stringify(
     {
       metadados: transcricao.metadados,
@@ -545,14 +566,33 @@ export function fmtIntervalo(intervalo) {
   return "";
 }
 
-export function paraRelatorio(transcricao) {
+function linhaReduzida(r) {
+  const limite = r.limite || "";
+  const valor = `${limite}${fmtValor(r.valor)}`;
+  const rotulo = (r.abreviacao || r.analito).toUpperCase();
+  return `${rotulo}: ${valor} ${r.unidade}`.replace(/\s+$/, "");
+}
+
+export function paraRelatorio(transcricao, formato = "completo") {
+  const meta = transcricao.metadados;
+
+  if (formato === "reduzido") {
+    const linhas = [];
+    const rotulosMeta = { paciente: "Paciente", data_coleta: "Data Coleta", sexo: "Sexo" };
+    for (const chave of META_REDUZIDA) {
+      if (chave in meta) linhas.push(`${rotulosMeta[chave]}: ${meta[chave]}`);
+    }
+    if (linhas.length) linhas.push("");
+    for (const r of transcricao.resultados) linhas.push(linhaReduzida(r));
+    return linhas.join("\n");
+  }
+
   const linhas = [];
   const barra = "=".repeat(64);
   linhas.push(barra);
   linhas.push("EXAME DE SANGUE — TRANSCRIÇÃO PADRONIZADA");
   linhas.push(barra);
 
-  const meta = transcricao.metadados;
   const rotulos = {
     paciente: "Paciente", data_coleta: "Data Coleta",
     sexo: "Sexo", laboratorio: "Laboratorio",

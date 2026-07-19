@@ -6,7 +6,8 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from transcritor import transcrever  # noqa: E402
+from transcritor import transcrever, para_json, para_relatorio, reduzir  # noqa: E402
+from transcritor.catalogo import CATALOGO  # noqa: E402
 from transcritor.texto import (  # noqa: E402
     parse_numero_br, normalizar_nome, normalizar_unidade,
 )
@@ -202,6 +203,50 @@ class TestLaudoCompleto(unittest.TestCase):
     def test_data_nao_vira_ruido(self):
         t = transcrever(self.texto)
         self.assertNotIn("Data da coleta", " ".join(t.nao_reconhecidos))
+
+
+class TestFormatoReduzido(unittest.TestCase):
+    def test_catalogo_tem_abreviacao_unica(self):
+        abreviacoes = [a.abreviacao for a in CATALOGO]
+        self.assertTrue(all(abreviacoes), "há analito sem abreviação")
+        self.assertEqual(len(abreviacoes), len(set(abreviacoes)), "abreviação duplicada")
+
+    def test_resultado_carrega_abreviacao(self):
+        r = transcrever("Hemoglobina 14,5 g/dL").resultados[0]
+        self.assertEqual(r.abreviacao, "HB")
+
+    def test_reduzir_omite_referencia_e_situacao(self):
+        t = transcrever("Hemoglobina 11,2 g/dL\nColesterol Total 210 mg/dL")
+        itens = reduzir(t)
+        self.assertEqual(len(itens), 2)
+        for item in itens:
+            self.assertEqual(set(item), {"abreviacao", "valor", "unidade", "limite"})
+        abreviacoes = {i["abreviacao"] for i in itens}
+        self.assertEqual(abreviacoes, {"HB", "CT"})
+
+    def test_para_json_reduzido_nao_tem_loinc_nem_situacao(self):
+        t = transcrever("Glicose 92 mg/dL")
+        bruto = para_json(t, formato="reduzido")
+        self.assertNotIn("codigo_loinc", bruto)
+        self.assertNotIn("situacao", bruto)
+        self.assertIn('"GLIC"', bruto)
+
+    def test_para_json_completo_mantem_todos_os_campos(self):
+        t = transcrever("Glicose 92 mg/dL")
+        bruto = para_json(t, formato="completo")
+        self.assertIn("codigo_loinc", bruto)
+        self.assertIn("situacao", bruto)
+
+    def test_para_relatorio_reduzido_uma_linha_por_exame(self):
+        t = transcrever("Hemoglobina 11,2 g/dL\nGlicose 92 mg/dL", metadados={"paciente": "Ana"})
+        texto = para_relatorio(t, formato="reduzido")
+        self.assertIn("HB: 11.2 g/dL", texto)
+        self.assertIn("GLIC: 92 mg/dL", texto)
+        self.assertIn("Paciente: Ana", texto)
+        # Não deve haver situação nem faixa de referência no texto reduzido.
+        self.assertNotIn("BAIXO", texto)
+        self.assertNotIn("ALTO", texto)
+        self.assertNotIn("ref:", texto)
 
 
 if __name__ == "__main__":

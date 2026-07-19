@@ -57,28 +57,83 @@ print(report_to_json(relatorio))
 | Tireoide         | TSH, T4 livre, T3 total |
 | Outros           | Ferritina, Vitamina D (25-OH), Vitamina B12, PCR, VHS |
 
-São **47 analitos** no total. O parser ignora faixas de referência escritas
-na mesma linha entre parênteses ou colchetes (ex.: `Glicose 92 mg/dL (70-99)`).
+São **47 analitos** no total, cada um com uma **abreviação** curta (ex.:
+Hemoglobina → `HB`, Colesterol total → `CT`, TGO → `TGO`), usada na entrada
+rápida e no formato reduzido descritos abaixo. O parser ignora faixas de
+referência escritas na mesma linha entre parênteses ou colchetes (ex.:
+`Glicose 92 mg/dL (70-99)`).
+
+## Entrada rápida e nível de detalhe (completo ou reduzido)
+
+O objetivo do transcritor é permitir **digitar exames rapidamente**: em vez
+de escrever um laudo inteiro, você adiciona só os exames pedidos pelo
+médico (por nome ou abreviação) e digita apenas o valor de cada um — a
+unidade e o nome padronizado vêm do catálogo automaticamente.
+
+O resultado pode ser salvo em dois níveis de detalhe:
+
+- **Completo** (padrão): nome, código LOINC, unidade, faixa de referência e
+  situação (`baixo` / `normal` / `alto`) de cada exame.
+- **Reduzido**: só a abreviação, o valor e a unidade — sem faixa de
+  referência nem situação. Pensado para registros rápidos e compactos.
+
+Na CLI, use `--nivel reduzido` (ou `--nivel completo`, o padrão):
+
+```bash
+python cli.py laudo.txt --nivel reduzido
+python cli.py laudo.txt --formato json --nivel reduzido
+```
+
+Saída reduzida em texto (uma linha por exame):
+
+```
+HB: 11.2 g/dL
+GLIC: 105 mg/dL
+CT: 210 mg/dL
+```
+
+Na versão web (`docs/`, publicada via GitHub Pages), a aba **Entrada
+rápida** oferece uma busca com autocompletar por nome/abreviação: digite,
+pressione Enter para adicionar o exame à lista, digite o valor e Enter
+novamente para o próximo — sem precisar redigitar unidade, faixa de
+referência ou nome completo. O seletor **Salvar como** alterna entre
+Completo e Reduzido, refletido na tabela, no JSON e no texto exportados. A
+aba **Colar laudo** mantém o fluxo original de colar um laudo em texto
+livre.
+
+JSON completo (`--formato json`, padrão `--nivel completo`):
 
 ```json
 {
-  "paciente": "Maria da Silva",
-  "data_exame": "10/07/2026",
-  "total_exames": 13,
-  "exames": [
+  "metadados": { "total_reconhecidos": 1, "total_nao_reconhecidos": 0 },
+  "resultados": [
     {
-      "codigo": "HGB",
-      "nome_padrao": "Hemoglobina",
+      "analito": "Hemoglobina",
+      "abreviacao": "HB",
       "categoria": "Hemograma",
-      "nome_original": "Hemoglobina",
+      "codigo_loinc": "718-7",
       "valor": 11.2,
+      "unidade": "g/dL",
+      "situacao": "abaixo",
+      "intervalo_referencia": { "minimo": 12.0, "maximo": 17.5 },
+      "nome_original": "Hemoglobina",
+      "valor_original": "11,2",
       "unidade_original": "g/dL",
-      "unidade_padrao": "g/dL",
-      "faixa_referencia_min": 12.0,
-      "faixa_referencia_max": 16.0,
-      "situacao": "baixo",
-      "linha_original": "Hemoglobina: 11.2 g/dL (12.0 - 16.0)"
+      "limite": null,
+      "observacoes": []
     }
+  ],
+  "nao_reconhecidos": []
+}
+```
+
+JSON reduzido (`--formato json --nivel reduzido`):
+
+```json
+{
+  "metadados": {},
+  "exames": [
+    { "abreviacao": "HB", "valor": 11.2, "unidade": "g/dL", "limite": null }
   ]
 }
 ```

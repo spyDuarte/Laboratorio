@@ -62,6 +62,7 @@ def normalizar_item(item: ItemBruto, sexo: Optional[str] = None) -> Resultado:
     if analito is None:
         return Resultado(
             analito=item.nome_original.strip(),
+            abreviacao="",
             categoria="Não catalogado",
             codigo_loinc=None,
             valor=valor_origem,
@@ -120,6 +121,7 @@ def normalizar_item(item: ItemBruto, sexo: Optional[str] = None) -> Resultado:
 
     return Resultado(
         analito=analito.nome,
+        abreviacao=analito.abreviacao,
         categoria=analito.categoria,
         codigo_loinc=analito.codigo_loinc,
         valor=valor,

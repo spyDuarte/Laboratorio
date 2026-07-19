@@ -20,6 +20,7 @@ class Analito:
 
     codigo_loinc: str
     nome: str
+    abreviacao: str
     categoria: str
     unidade: str
     # Sinônimos já normalizados (minúsculas, sem acento, sem pontuação).
@@ -40,6 +41,7 @@ class Resultado:
     """Um resultado de exame já transcrito para o padrão de saída."""
 
     analito: str
+    abreviacao: str
     categoria: str
     codigo_loinc: Optional[str]
     valor: Optional[float]

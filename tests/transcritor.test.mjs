@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 import {
-  transcrever, paraJson, CATALOGO,
+  transcrever, paraJson, paraRelatorio, reduzir, CATALOGO,
   parseNumeroBr, normalizarNome, normalizarUnidade, parseLinha,
   identificarAnalito,
 } from "../docs/transcritor.js";
@@ -89,4 +89,51 @@ test("catálogo tem 47 analitos e códigos LOINC únicos por nome", () => {
   assert.equal(CATALOGO.length, 47);
   const nomes = new Set(CATALOGO.map((a) => a.nome));
   assert.equal(nomes.size, CATALOGO.length);
+});
+
+test("catálogo tem abreviação única por analito", () => {
+  const abreviacoes = CATALOGO.map((a) => a.abreviacao);
+  assert.ok(abreviacoes.every(Boolean), "há analito sem abreviação");
+  assert.equal(new Set(abreviacoes).size, abreviacoes.length, "abreviação duplicada");
+});
+
+test("resultado carrega abreviação", () => {
+  const r = transcrever("Hemoglobina 14,5 g/dL").resultados[0];
+  assert.equal(r.abreviacao, "HB");
+});
+
+test("reduzir omite referência e situação", () => {
+  const t = transcrever("Hemoglobina 11,2 g/dL\nColesterol Total 210 mg/dL");
+  const itens = reduzir(t);
+  assert.equal(itens.length, 2);
+  for (const item of itens) {
+    assert.deepEqual(Object.keys(item).sort(), ["abreviacao", "limite", "unidade", "valor"]);
+  }
+  assert.deepEqual(new Set(itens.map((i) => i.abreviacao)), new Set(["HB", "CT"]));
+});
+
+test("paraJson reduzido não tem LOINC nem situação", () => {
+  const t = transcrever("Glicose 92 mg/dL");
+  const bruto = paraJson(t, "reduzido");
+  assert.ok(!bruto.includes("codigo_loinc"));
+  assert.ok(!bruto.includes("situacao"));
+  assert.ok(bruto.includes('"GLIC"'));
+});
+
+test("paraJson completo mantém todos os campos", () => {
+  const t = transcrever("Glicose 92 mg/dL");
+  const bruto = paraJson(t, "completo");
+  assert.ok(bruto.includes("codigo_loinc"));
+  assert.ok(bruto.includes("situacao"));
+});
+
+test("paraRelatorio reduzido gera uma linha por exame", () => {
+  const t = transcrever("Hemoglobina 11,2 g/dL\nGlicose 92 mg/dL", null, { paciente: "Ana" });
+  const texto = paraRelatorio(t, "reduzido");
+  assert.ok(texto.includes("HB: 11.2 g/dL"));
+  assert.ok(texto.includes("GLIC: 92 mg/dL"));
+  assert.ok(texto.includes("Paciente: Ana"));
+  assert.ok(!texto.includes("BAIXO"));
+  assert.ok(!texto.includes("ALTO"));
+  assert.ok(!texto.includes("ref:"));
 });

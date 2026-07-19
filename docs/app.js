@@ -2,7 +2,7 @@
 
 import {
   transcrever, paraJson, paraRelatorio, fmtIntervalo, LAUDO_EXEMPLO,
-  normalizarNome, CATALOGO, MODELOS,
+  normalizarNome, identificarAnalito, CATALOGO, MODELOS,
 } from "./transcritor.js";
 
 const $ = (sel) => document.querySelector(sel);
@@ -20,6 +20,16 @@ const buscaExame = $("#busca-exame");
 const sugestoesEl = $("#sugestoes");
 const itensRapidosEl = $("#itens-rapidos");
 const modelosEl = $("#modelos");
+const modelosBotoesEl = $("#modelos-botoes");
+const linhaRapida = $("#linha-rapida");
+const itensAcoesEl = $("#itens-acoes");
+
+// Índices para resolver exames por código LOINC ou por abreviação.
+const PORLOINC = new Map(CATALOGO.map((a) => [a.codigoLoinc, a]));
+const PORABREV = new Map(CATALOGO.map((a) => [normalizarNome(a.abreviacao), a]));
+
+const CHAVE_ESTADO = "laboratorio.estado.v1";
+const CHAVE_MODELOS = "laboratorio.modelos.v1";
 
 let ultimoJson = "";
 let ultimoTexto = "";
@@ -27,6 +37,9 @@ let modoAtual = "rapido"; // "rapido" | "texto"
 
 // Lista de exames adicionados no modo de entrada rápida: { analito, valor }
 let itensRapidos = [];
+
+// Modelos personalizados salvos pelo usuário: [{ nome, codigos: [loinc] }]
+let modelosCustom = [];
 
 // Índice da sugestão realçada (navegação por setas) na lista atual.
 let sugestaoAtivaIdx = -1;
@@ -173,6 +186,111 @@ function atualizar() {
   renderTabela(t, nivel);
   jsonSaida.textContent = ultimoJson;
   textoSaida.textContent = ultimoTexto;
+  salvarEstado();
+}
+
+/* ---- persistência local (localStorage) ---- */
+
+function salvarEstado() {
+  try {
+    localStorage.setItem(CHAVE_ESTADO, JSON.stringify({
+      itens: itensRapidos.map((it) => ({ c: it.analito.codigoLoinc, v: it.valor })),
+      texto: entrada.value,
+      sexo: sexoSel.value,
+      nivel: nivelSel.value,
+      modo: modoAtual,
+    }));
+  } catch { /* localStorage indisponível (ex.: modo privado) — segue sem salvar */ }
+}
+
+function restaurarEstado() {
+  let dados = null;
+  try { dados = JSON.parse(localStorage.getItem(CHAVE_ESTADO) || "null"); } catch { dados = null; }
+  if (!dados) {
+    entrada.value = LAUDO_EXEMPLO;
+    return;
+  }
+  itensRapidos = (dados.itens || [])
+    .map(({ c, v }) => {
+      const analito = PORLOINC.get(c);
+      return analito ? { analito, valor: v || "" } : null;
+    })
+    .filter(Boolean);
+  entrada.value = dados.texto != null ? dados.texto : LAUDO_EXEMPLO;
+  if (dados.sexo) sexoSel.value = dados.sexo;
+  if (dados.nivel) nivelSel.value = dados.nivel;
+  if (dados.modo) modoAtual = dados.modo;
+}
+
+function carregarModelosCustom() {
+  try { modelosCustom = JSON.parse(localStorage.getItem(CHAVE_MODELOS) || "[]") || []; }
+  catch { modelosCustom = []; }
+}
+
+function salvarModelosCustom() {
+  try { localStorage.setItem(CHAVE_MODELOS, JSON.stringify(modelosCustom)); } catch { /* ignora */ }
+}
+
+/* ---- linha rápida: "hb 14 glic 92 ct 210" -> lista de exames ---- */
+
+function resolverAnalito(nome) {
+  return PORABREV.get(normalizarNome(nome)) || identificarAnalito(nome) || null;
+}
+
+function parseLinhaRapida(texto) {
+  const tokens = (texto || "").trim().split(/\s+/).filter(Boolean);
+  const encontrados = [];
+  const naoReconhecidos = [];
+  let buffer = [];
+
+  const fecharBuffer = (valor) => {
+    const nome = buffer.join(" ");
+    buffer = [];
+    if (!nome) {
+      if (valor != null) naoReconhecidos.push(valor);
+      return;
+    }
+    const analito = resolverAnalito(nome);
+    if (analito) encontrados.push({ analito, valor: valor == null ? "" : valor });
+    else naoReconhecidos.push(nome);
+  };
+
+  for (const tok of tokens) {
+    if (/^[<>≤≥]?\d/.test(tok)) fecharBuffer(tok);
+    else buffer.push(tok);
+  }
+  if (buffer.length) fecharBuffer(null); // nome ao final sem valor: adiciona vazio para preencher
+
+  return { encontrados, naoReconhecidos };
+}
+
+function aplicarLinhaRapida() {
+  const { encontrados, naoReconhecidos } = parseLinhaRapida(linhaRapida.value);
+  if (!encontrados.length && !naoReconhecidos.length) return;
+
+  for (const { analito, valor } of encontrados) {
+    const item = itensRapidos.find((it) => it.analito.codigoLoinc === analito.codigoLoinc);
+    if (item) { if (valor) item.valor = valor; }
+    else itensRapidos.push({ analito, valor });
+  }
+  renderItensRapidos();
+  atualizar();
+  linhaRapida.value = "";
+
+  let msg = `${encontrados.length} exame(s) adicionado(s)`;
+  if (naoReconhecidos.length) msg += ` · não reconhecido(s): ${naoReconhecidos.join(", ")}`;
+  mostrarToast(msg);
+
+  focarPrimeiroValorVazio();
+}
+
+function focarPrimeiroValorVazio() {
+  const alvo = itensRapidos.find((it) => it.valor === "") || itensRapidos[itensRapidos.length - 1];
+  if (!alvo) return;
+  const campo = itensRapidosEl.querySelector(
+    `[data-codigo="${CSS.escape(alvo.analito.codigoLoinc)}"] .item-valor`
+  );
+  campo?.focus();
 }
 
 /* ---- modo de entrada rápida ---- */
@@ -242,23 +360,67 @@ function adicionarItem(analito) {
   campo?.focus();
 }
 
-function adicionarModelo(chave) {
-  const modelo = MODELOS.find((m) => m.chave === chave);
-  if (!modelo) return;
-  for (const analito of modelo.analitos) {
-    if (!itensRapidos.some((it) => it.analito.codigoLoinc === analito.codigoLoinc)) {
+function adicionarExames(analitos, nomeModelo) {
+  for (const analito of analitos) {
+    if (analito && !itensRapidos.some((it) => it.analito.codigoLoinc === analito.codigoLoinc)) {
       itensRapidos.push({ analito, valor: "" });
     }
   }
   renderItensRapidos();
   atualizar();
-  mostrarToast(`Modelo "${modelo.nome}" adicionado`);
-  const primeiroVazio = itensRapidos.find((it) => it.valor === "");
-  const alvo = primeiroVazio || itensRapidos[itensRapidos.length - 1];
-  const campo = itensRapidosEl.querySelector(
-    `[data-codigo="${CSS.escape(alvo.analito.codigoLoinc)}"] .item-valor`
-  );
-  campo?.focus();
+  if (nomeModelo) mostrarToast(`Modelo "${nomeModelo}" adicionado`);
+  focarPrimeiroValorVazio();
+}
+
+function adicionarModelo(chave) {
+  const modelo = MODELOS.find((m) => m.chave === chave);
+  if (modelo) adicionarExames(modelo.analitos, modelo.nome);
+}
+
+function adicionarModeloCustom(nome) {
+  const modelo = modelosCustom.find((m) => m.nome === nome);
+  if (modelo) adicionarExames(modelo.codigos.map((c) => PORLOINC.get(c)), modelo.nome);
+}
+
+function salvarModeloAtual() {
+  if (!itensRapidos.length) {
+    mostrarToast("Adicione exames antes de salvar um modelo");
+    return;
+  }
+  const nome = (prompt("Nome do modelo (ex.: Check-up, Pré-operatório):") || "").trim();
+  if (!nome) return;
+  const codigos = itensRapidos.map((it) => it.analito.codigoLoinc);
+  const existente = modelosCustom.find((m) => m.nome === nome);
+  if (existente) existente.codigos = codigos;
+  else modelosCustom.push({ nome, codigos });
+  salvarModelosCustom();
+  renderModelos();
+  mostrarToast(`Modelo "${nome}" salvo`);
+}
+
+function excluirModeloCustom(nome) {
+  modelosCustom = modelosCustom.filter((m) => m.nome !== nome);
+  salvarModelosCustom();
+  renderModelos();
+}
+
+function renderModelos() {
+  const fixos = MODELOS.map((m) =>
+    `<button type="button" class="btn btn-sec" data-modelo="${esc(m.chave)}" ` +
+    `title="${esc(m.nome)}">${esc(m.chave)}</button>`).join("");
+  const custom = modelosCustom.map((m) =>
+    `<span class="modelo-custom">` +
+    `<button type="button" class="btn btn-sec" data-modelo-custom="${esc(m.nome)}">${esc(m.nome)}</button>` +
+    `<button type="button" class="modelo-del" data-del-modelo="${esc(m.nome)}" ` +
+    `aria-label="Excluir modelo ${esc(m.nome)}" title="Excluir modelo">×</button></span>`).join("");
+  modelosBotoesEl.innerHTML = fixos + custom;
+}
+
+function limparItens() {
+  if (!itensRapidos.length) return;
+  itensRapidos = [];
+  renderItensRapidos();
+  atualizar();
 }
 
 function removerItem(codigoLoinc) {
@@ -268,8 +430,10 @@ function removerItem(codigoLoinc) {
 }
 
 function renderItensRapidos() {
+  itensAcoesEl?.classList.toggle("oculto", !itensRapidos.length);
   if (!itensRapidos.length) {
-    itensRapidosEl.innerHTML = `<p class="vazio">Nenhum exame adicionado ainda. Busque acima para começar.</p>`;
+    itensRapidosEl.innerHTML = `<p class="vazio">Nenhum exame adicionado ainda. Busque, use a linha rápida ou escolha um modelo.</p>`;
+    salvarEstado();
     return;
   }
   itensRapidosEl.innerHTML = itensRapidos.map((it) => `
@@ -281,6 +445,7 @@ function renderItensRapidos() {
       <button class="item-remover" type="button" aria-label="Remover ${esc(it.analito.nome)}">×</button>
     </div>
   `).join("");
+  salvarEstado();
 }
 
 /* ---- interações ---- */
@@ -397,9 +562,24 @@ document.addEventListener("click", (ev) => {
 });
 
 modelosEl?.addEventListener("click", (ev) => {
-  const btn = ev.target.closest("[data-modelo]");
-  if (!btn) return;
-  adicionarModelo(btn.dataset.modelo);
+  const fixo = ev.target.closest("[data-modelo]");
+  const custom = ev.target.closest("[data-modelo-custom]");
+  const del = ev.target.closest("[data-del-modelo]");
+  const salvar = ev.target.closest("#btn-salvar-modelo");
+  if (del) excluirModeloCustom(del.dataset.delModelo);
+  else if (custom) adicionarModeloCustom(custom.dataset.modeloCustom);
+  else if (fixo) adicionarModelo(fixo.dataset.modelo);
+  else if (salvar) salvarModeloAtual();
+});
+
+linhaRapida?.addEventListener("keydown", (ev) => {
+  if (ev.key !== "Enter") return;
+  ev.preventDefault();
+  aplicarLinhaRapida();
+});
+
+itensAcoesEl?.addEventListener("click", (ev) => {
+  if (ev.target.closest("#btn-limpar-rapido")) limparItens();
 });
 
 itensRapidosEl.addEventListener("input", (ev) => {
@@ -415,7 +595,13 @@ itensRapidosEl.addEventListener("keydown", (ev) => {
   if (ev.key !== "Enter" || !ev.target.classList.contains("item-valor")) return;
   ev.preventDefault();
   atualizar();
-  buscaExame.focus();
+  // Enter avança para o próximo campo de valor ainda vazio (ideal para modelos);
+  // se não houver, volta para a busca para adicionar mais exames.
+  const campos = [...itensRapidosEl.querySelectorAll(".item-valor")];
+  const idx = campos.indexOf(ev.target);
+  const proximoVazio = campos.slice(idx + 1).find((c) => c.value.trim() === "");
+  if (proximoVazio) proximoVazio.focus();
+  else buscaExame.focus();
 });
 itensRapidosEl.addEventListener("click", (ev) => {
   const btn = ev.target.closest(".item-remover");
@@ -424,6 +610,13 @@ itensRapidosEl.addEventListener("click", (ev) => {
   removerItem(codigo);
 });
 
-// Estado inicial: modo de entrada rápida vazio; laudo de exemplo pronto no modo texto.
-entrada.value = LAUDO_EXEMPLO;
+// Estado inicial: restaura a sessão anterior (localStorage) ou carrega o exemplo.
+carregarModelosCustom();
+restaurarEstado();
+renderModelos();
+renderItensRapidos();
+document.querySelectorAll("[data-modo]").forEach((b) =>
+  b.classList.toggle("ativa", b.dataset.modo === modoAtual));
+$("#modo-rapido").classList.toggle("oculto", modoAtual !== "rapido");
+$("#modo-texto").classList.toggle("oculto", modoAtual !== "texto");
 atualizar();

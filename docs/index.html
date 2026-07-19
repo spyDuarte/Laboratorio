@@ -45,13 +45,19 @@
             placeholder="Digite o exame ou abreviação (ex.: HB, glicose, tgo) — ↑↓ navegam, Enter adiciona…" />
           <div id="sugestoes" class="sugestoes oculto" role="listbox"></div>
         </div>
+        <input id="linha-rapida" type="text" autocomplete="off" spellcheck="false"
+          placeholder="Linha rápida: hb 14 glic 92 ct 210 tgo 30 — Enter adiciona todos" />
         <div id="modelos" class="modelos">
           <span class="modelos-rotulo">Modelos:</span>
-          <button type="button" class="btn btn-sec" data-modelo="HAS">HAS</button>
-          <button type="button" class="btn btn-sec" data-modelo="DM">DM</button>
+          <span id="modelos-botoes"></span>
+          <button type="button" class="btn btn-sec" id="btn-salvar-modelo"
+            title="Salvar a lista atual como um modelo reutilizável">+ Salvar</button>
         </div>
         <div id="itens-rapidos" class="itens-rapidos">
-          <p class="vazio">Nenhum exame adicionado ainda. Busque acima ou escolha um modelo para começar.</p>
+          <p class="vazio">Nenhum exame adicionado ainda. Busque, use a linha rápida ou escolha um modelo.</p>
+        </div>
+        <div id="itens-acoes" class="itens-acoes oculto">
+          <button type="button" class="btn btn-sec" id="btn-limpar-rapido">Limpar lista</button>
         </div>
       </div>
 

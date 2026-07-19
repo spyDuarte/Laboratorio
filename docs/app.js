@@ -2,22 +2,30 @@
 
 import {
   transcrever, paraJson, paraRelatorio, fmtIntervalo, LAUDO_EXEMPLO,
-  normalizarNome,
+  normalizarNome, CATALOGO,
 } from "./transcritor.js";
 
 const $ = (sel) => document.querySelector(sel);
 
 const entrada = $("#entrada");
 const sexoSel = $("#sexo");
+const nivelSel = $("#nivel");
 const meta = $("#meta");
 const resumo = $("#resumo");
 const vistaTabela = $("#vista-tabela");
 const jsonSaida = $("#json-saida");
 const textoSaida = $("#texto-saida");
 const toast = $("#toast");
+const buscaExame = $("#busca-exame");
+const sugestoesEl = $("#sugestoes");
+const itensRapidosEl = $("#itens-rapidos");
 
 let ultimoJson = "";
 let ultimoTexto = "";
+let modoAtual = "rapido"; // "rapido" | "texto"
+
+// Lista de exames adicionados no modo de entrada rápida: { analito, valor }
+let itensRapidos = [];
 
 const SITUACAO = {
   normal: { rotulo: "Normal", cls: "ok" },
@@ -63,12 +71,7 @@ function renderResumo(t) {
     `<span class="legenda"><span class="ponto alto"></span>acima</span>`;
 }
 
-function renderTabela(t) {
-  if (!t.resultados.length && !t.nao_reconhecidos.length) {
-    vistaTabela.innerHTML = `<p class="vazio">Cole um laudo para ver a transcrição.</p>`;
-    return;
-  }
-
+function renderTabelaCompleta(t) {
   let html = "";
   let categoriaAtual = null;
   let abriu = false;
@@ -97,6 +100,42 @@ function renderTabela(t) {
       `<td class="loinc">${esc(r.codigo_loinc || "—")}</td></tr>`;
   }
   if (abriu) html += `</tbody></table></div></div>`;
+  return html;
+}
+
+function renderTabelaReduzida(t) {
+  let html = "";
+  let categoriaAtual = null;
+  let abriu = false;
+
+  for (const r of t.resultados) {
+    if (r.categoria !== categoriaAtual) {
+      if (abriu) html += `</tbody></table></div></div>`;
+      categoriaAtual = r.categoria;
+      html += `<div class="cat"><h3>${esc(categoriaAtual)}</h3><div class="tabela-wrap">` +
+        `<table><thead><tr><th>Abrev.</th><th class="num">Resultado</th></tr></thead><tbody>`;
+      abriu = true;
+    }
+    const limite = r.limite || "";
+    html +=
+      `<tr><td><span class="exame-nome">${esc((r.abreviacao || r.analito).toUpperCase())}</span></td>` +
+      `<td class="num">${esc(limite)}${fmtNumero(r.valor)} ${esc(r.unidade)}</td></tr>`;
+  }
+  if (abriu) html += `</tbody></table></div></div>`;
+  return html;
+}
+
+function renderTabela(t, nivel) {
+  if (!t.resultados.length && !t.nao_reconhecidos.length) {
+    vistaTabela.innerHTML = `<p class="vazio">${
+      modoAtual === "rapido"
+        ? "Adicione exames acima para ver a transcrição."
+        : "Cole um laudo para ver a transcrição."
+    }</p>`;
+    return;
+  }
+
+  let html = nivel === "reduzido" ? renderTabelaReduzida(t) : renderTabelaCompleta(t);
 
   if (t.nao_reconhecidos.length) {
     html += `<div class="nao-reconhecidos"><strong>Itens não reconhecidos</strong>` +
@@ -107,19 +146,106 @@ function renderTabela(t) {
   vistaTabela.innerHTML = html;
 }
 
+/* ---- geração do texto-fonte a partir do modo ativo ---- */
+
+function textoDoModoRapido() {
+  return itensRapidos
+    .filter((it) => it.valor.trim() !== "")
+    .map((it) => `${it.analito.nome}: ${it.valor.trim()} ${it.analito.unidade}`)
+    .join("\n");
+}
+
 function atualizar() {
-  const texto = entrada.value;
+  const texto = modoAtual === "rapido" ? textoDoModoRapido() : entrada.value;
   const sexo = sexoSel.value || null;
+  const nivel = nivelSel.value;
   const t = transcrever(texto, sexo);
 
-  ultimoJson = paraJson(t);
-  ultimoTexto = paraRelatorio(t);
+  ultimoJson = paraJson(t, nivel);
+  ultimoTexto = paraRelatorio(t, nivel);
 
   renderMeta(t.metadados);
   renderResumo(t);
-  renderTabela(t);
+  renderTabela(t, nivel);
   jsonSaida.textContent = ultimoJson;
   textoSaida.textContent = ultimoTexto;
+}
+
+/* ---- modo de entrada rápida ---- */
+
+function pontuarAnalito(analito, q) {
+  const abrev = normalizarNome(analito.abreviacao);
+  const nome = normalizarNome(analito.nome);
+  if (abrev === q) return 0;
+  if (abrev.startsWith(q)) return 1;
+  if (nome.startsWith(q)) return 2;
+  if (analito.sinonimos.some((s) => s.startsWith(q))) return 3;
+  const alvo = [abrev, nome, ...analito.sinonimos];
+  if (alvo.some((s) => s.includes(q))) return 4;
+  return null;
+}
+
+function buscarAnalitos(consulta) {
+  const q = normalizarNome(consulta);
+  if (!q) return [];
+  const pontuados = [];
+  for (const analito of CATALOGO) {
+    const pontos = pontuarAnalito(analito, q);
+    if (pontos != null) pontuados.push([pontos, analito]);
+  }
+  pontuados.sort((a, b) => a[0] - b[0]);
+  return pontuados.slice(0, 8).map(([, analito]) => analito);
+}
+
+function renderSugestoes(lista) {
+  if (!lista.length) {
+    sugestoesEl.classList.add("oculto");
+    sugestoesEl.innerHTML = "";
+    return;
+  }
+  sugestoesEl.innerHTML = lista
+    .map((a, i) => `<button type="button" class="sugestao" data-idx="${i}" role="option">` +
+      `<span class="sugestao-abrev">${esc(a.abreviacao)}</span>` +
+      `<span class="sugestao-nome">${esc(a.nome)}</span>` +
+      `<span class="sugestao-cat">${esc(a.categoria)}</span></button>`)
+    .join("");
+  sugestoesEl.classList.remove("oculto");
+  sugestoesEl._lista = lista;
+}
+
+function adicionarItem(analito) {
+  let item = itensRapidos.find((it) => it.analito.codigoLoinc === analito.codigoLoinc);
+  if (!item) {
+    item = { analito, valor: "" };
+    itensRapidos.push(item);
+  }
+  renderItensRapidos();
+  buscaExame.value = "";
+  renderSugestoes([]);
+  const campo = itensRapidosEl.querySelector(`[data-codigo="${CSS.escape(analito.codigoLoinc)}"] .item-valor`);
+  campo?.focus();
+}
+
+function removerItem(codigoLoinc) {
+  itensRapidos = itensRapidos.filter((it) => it.analito.codigoLoinc !== codigoLoinc);
+  renderItensRapidos();
+  atualizar();
+}
+
+function renderItensRapidos() {
+  if (!itensRapidos.length) {
+    itensRapidosEl.innerHTML = `<p class="vazio">Nenhum exame adicionado ainda. Busque acima para começar.</p>`;
+    return;
+  }
+  itensRapidosEl.innerHTML = itensRapidos.map((it) => `
+    <div class="item-rapido" data-codigo="${esc(it.analito.codigoLoinc)}">
+      <span class="item-nome">${esc(it.analito.nome)} <span class="item-abrev">${esc(it.analito.abreviacao)}</span></span>
+      <input class="item-valor" inputmode="decimal" autocomplete="off"
+        placeholder="valor" value="${esc(it.valor)}" />
+      <span class="item-unidade">${esc(it.analito.unidade)}</span>
+      <button class="item-remover" type="button" aria-label="Remover ${esc(it.analito.nome)}">×</button>
+    </div>
+  `).join("");
 }
 
 /* ---- interações ---- */
@@ -143,7 +269,9 @@ async function copiar(qual) {
 
 function baixar(qual) {
   const conteudo = qual === "json" ? ultimoJson : ultimoTexto;
-  const nome = qual === "json" ? "exame-transcrito.json" : "exame-transcrito.txt";
+  const nivel = nivelSel.value;
+  const sufixo = nivel === "reduzido" ? "-reduzido" : "";
+  const nome = qual === "json" ? `exame${sufixo}.json` : `exame${sufixo}.txt`;
   const tipo = qual === "json" ? "application/json" : "text/plain";
   const blob = new Blob([conteudo], { type: `${tipo};charset=utf-8` });
   const url = URL.createObjectURL(blob);
@@ -155,11 +283,20 @@ function baixar(qual) {
 }
 
 function trocarVista(vista) {
-  document.querySelectorAll(".aba").forEach((b) =>
+  document.querySelectorAll("[data-vista]").forEach((b) =>
     b.classList.toggle("ativa", b.dataset.vista === vista));
   for (const v of ["tabela", "json", "texto"]) {
     $(`#vista-${v}`).classList.toggle("oculto", v !== vista);
   }
+}
+
+function trocarModo(modo) {
+  modoAtual = modo;
+  document.querySelectorAll("[data-modo]").forEach((b) =>
+    b.classList.toggle("ativa", b.dataset.modo === modo));
+  $("#modo-rapido").classList.toggle("oculto", modo !== "rapido");
+  $("#modo-texto").classList.toggle("oculto", modo !== "texto");
+  atualizar();
 }
 
 let debounce;
@@ -168,7 +305,7 @@ entrada.addEventListener("input", () => {
   debounce = setTimeout(atualizar, 250);
 });
 sexoSel.addEventListener("change", atualizar);
-$("#btn-transcrever").addEventListener("click", atualizar);
+nivelSel.addEventListener("change", atualizar);
 $("#btn-exemplo").addEventListener("click", () => {
   entrada.value = LAUDO_EXEMPLO;
   atualizar();
@@ -178,13 +315,60 @@ $("#btn-limpar").addEventListener("click", () => {
   atualizar();
 });
 
-document.querySelectorAll(".aba").forEach((b) =>
+document.querySelectorAll("[data-vista]").forEach((b) =>
   b.addEventListener("click", () => trocarVista(b.dataset.vista)));
+document.querySelectorAll("[data-modo]").forEach((b) =>
+  b.addEventListener("click", () => trocarModo(b.dataset.modo)));
 document.querySelectorAll("[data-copiar]").forEach((b) =>
   b.addEventListener("click", () => copiar(b.dataset.copiar)));
 document.querySelectorAll("[data-baixar]").forEach((b) =>
   b.addEventListener("click", () => baixar(b.dataset.baixar)));
 
-// Estado inicial: carrega o laudo de exemplo.
+buscaExame.addEventListener("input", () => {
+  renderSugestoes(buscarAnalitos(buscaExame.value));
+});
+buscaExame.addEventListener("keydown", (ev) => {
+  if (ev.key === "Enter") {
+    ev.preventDefault();
+    const lista = sugestoesEl._lista || [];
+    if (lista.length) adicionarItem(lista[0]);
+  } else if (ev.key === "Escape") {
+    renderSugestoes([]);
+  }
+});
+sugestoesEl.addEventListener("click", (ev) => {
+  const btn = ev.target.closest(".sugestao");
+  if (!btn) return;
+  const lista = sugestoesEl._lista || [];
+  const analito = lista[Number(btn.dataset.idx)];
+  if (analito) adicionarItem(analito);
+});
+document.addEventListener("click", (ev) => {
+  if (!ev.target.closest(".rapido-busca")) renderSugestoes([]);
+});
+
+itensRapidosEl.addEventListener("input", (ev) => {
+  if (!ev.target.classList.contains("item-valor")) return;
+  const linha = ev.target.closest(".item-rapido");
+  const codigo = linha.dataset.codigo;
+  const item = itensRapidos.find((it) => it.analito.codigoLoinc === codigo);
+  if (item) item.valor = ev.target.value;
+  clearTimeout(debounce);
+  debounce = setTimeout(atualizar, 200);
+});
+itensRapidosEl.addEventListener("keydown", (ev) => {
+  if (ev.key !== "Enter" || !ev.target.classList.contains("item-valor")) return;
+  ev.preventDefault();
+  atualizar();
+  buscaExame.focus();
+});
+itensRapidosEl.addEventListener("click", (ev) => {
+  const btn = ev.target.closest(".item-remover");
+  if (!btn) return;
+  const codigo = btn.closest(".item-rapido").dataset.codigo;
+  removerItem(codigo);
+});
+
+// Estado inicial: modo de entrada rápida vazio; laudo de exemplo pronto no modo texto.
 entrada.value = LAUDO_EXEMPLO;
 atualizar();

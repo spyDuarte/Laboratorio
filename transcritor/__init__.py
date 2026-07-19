@@ -9,7 +9,7 @@ Uso rápido:
     print(para_json(t))
 """
 
-from .transcritor import transcrever, para_json, para_relatorio
+from .transcritor import transcrever, para_json, para_relatorio, reduzir
 from .modelos import Analito, Resultado, Transcricao
 from .catalogo import CATALOGO
 
@@ -17,6 +17,7 @@ __all__ = [
     "transcrever",
     "para_json",
     "para_relatorio",
+    "reduzir",
     "Analito",
     "Resultado",
     "Transcricao",

@@ -69,9 +69,43 @@ def transcrever(texto: str, sexo: Optional[str] = None,
     )
 
 
-def para_json(transcricao: Transcricao, indent: int = 2) -> str:
-    """Serializa a transcrição no padrão JSON."""
-    return json.dumps(transcricao.to_dict(), ensure_ascii=False, indent=indent)
+_META_REDUZIDA = ("paciente", "data_coleta", "sexo")
+
+
+def reduzir(transcricao: Transcricao) -> list[dict]:
+    """Reduz os resultados reconhecidos ao essencial para digitação/gravação
+    rápida: nome abreviado, valor e unidade — sem código LOINC, categoria,
+    faixa de referência ou situação (baixo/normal/alto)."""
+    itens = []
+    for r in transcricao.resultados:
+        itens.append({
+            "abreviacao": r.abreviacao or r.analito,
+            "valor": r.valor,
+            "unidade": r.unidade,
+            "limite": r.limite,
+        })
+    return itens
+
+
+def para_json(transcricao: Transcricao, formato: str = "completo",
+              indent: int = 2) -> str:
+    """Serializa a transcrição em JSON.
+
+    Args:
+        formato: "completo" (padrão, todos os campos) ou "reduzido"
+            (apenas abreviação, valor e unidade dos exames reconhecidos).
+    """
+    if formato == "reduzido":
+        dados = {
+            "metadados": {
+                k: v for k, v in transcricao.metadados.items()
+                if k in _META_REDUZIDA
+            },
+            "exames": reduzir(transcricao),
+        }
+    else:
+        dados = transcricao.to_dict()
+    return json.dumps(dados, ensure_ascii=False, indent=indent)
 
 
 def _fmt_valor(valor) -> str:
@@ -95,14 +129,38 @@ def _fmt_intervalo(intervalo) -> str:
     return ""
 
 
-def para_relatorio(transcricao: Transcricao) -> str:
-    """Gera um relatório de texto padronizado, agrupado por categoria."""
+def _linha_reduzida(r) -> str:
+    limite = r.limite or ""
+    valor = f"{limite}{_fmt_valor(r.valor)}"
+    rotulo = (r.abreviacao or r.analito).upper()
+    return f"{rotulo}: {valor} {r.unidade}".rstrip()
+
+
+def para_relatorio(transcricao: Transcricao, formato: str = "completo") -> str:
+    """Gera um relatório de texto a partir da transcrição.
+
+    Args:
+        formato: "completo" (padrão, relatório detalhado agrupado por
+            categoria, com situação e faixa de referência) ou "reduzido"
+            (uma linha por exame reconhecido: abreviação, valor e unidade).
+    """
+    meta = transcricao.metadados
+
+    if formato == "reduzido":
+        linhas = [
+            f"{chave.replace('_', ' ').title()}: {meta[chave]}"
+            for chave in _META_REDUZIDA if chave in meta
+        ]
+        if linhas:
+            linhas.append("")
+        linhas.extend(_linha_reduzida(r) for r in transcricao.resultados)
+        return "\n".join(linhas)
+
     linhas: list[str] = []
     linhas.append("=" * 64)
     linhas.append("EXAME DE SANGUE — TRANSCRIÇÃO PADRONIZADA")
     linhas.append("=" * 64)
 
-    meta = transcricao.metadados
     for chave in ("paciente", "data_coleta", "sexo", "laboratorio"):
         if chave in meta:
             linhas.append(f"{chave.replace('_', ' ').title()}: {meta[chave]}")

@@ -4,6 +4,7 @@
 Exemplos:
     python cli.py exemplos/exame_exemplo.txt
     python cli.py exemplos/exame_exemplo.txt --formato json --sexo M
+    python cli.py exemplos/exame_exemplo.txt --nivel reduzido
     cat laudo.txt | python cli.py --sexo F
 """
 
@@ -27,6 +28,12 @@ def main(argv=None) -> int:
     parser.add_argument(
         "-f", "--formato", choices=["relatorio", "json"], default="relatorio",
         help="Formato de saída (padrão: relatorio).",
+    )
+    parser.add_argument(
+        "-n", "--nivel", choices=["completo", "reduzido"], default="completo",
+        help="Nível de detalhe: completo (padrão, com LOINC, faixa de "
+             "referência e situação) ou reduzido (nomes abreviados, "
+             "valor e unidade, para digitação/gravação rápida).",
     )
     parser.add_argument(
         "-s", "--sexo", choices=["M", "F"],
@@ -53,8 +60,8 @@ def main(argv=None) -> int:
         return 1
 
     transcricao = transcrever(texto, sexo=args.sexo)
-    saida = para_json(transcricao) if args.formato == "json" \
-        else para_relatorio(transcricao)
+    saida = para_json(transcricao, formato=args.nivel) if args.formato == "json" \
+        else para_relatorio(transcricao, formato=args.nivel)
 
     if args.saida:
         with open(args.saida, "w", encoding="utf-8") as f:

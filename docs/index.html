@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Transcritor de Exames de Sangue</title>
   <meta name="description"
-    content="Transcreve laudos de exames de sangue em texto livre para um padrão canônico (LOINC), com conversão de unidades e avaliação de referência. 100% no navegador." />
+    content="Digite exames de sangue rapidamente por busca e valor, ou cole um laudo em texto livre, e salve no padrão canônico (LOINC) completo ou reduzido (nomes abreviados). 100% no navegador." />
   <link rel="icon"
     href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A9%B8%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="./style.css" />
@@ -15,10 +15,11 @@
     <div class="topo-inner">
       <h1>🩸 Transcritor de Exames de Sangue</h1>
       <p class="sub">
-        Cole o texto de um laudo e obtenha os resultados padronizados
-        (nomes canônicos, códigos <strong>LOINC</strong>, unidades e
-        avaliação de referência). Tudo roda no seu navegador — nada é enviado
-        a servidores.
+        Adicione os exames pedidos pelo médico e digite só o valor — ou
+        cole um laudo em texto livre. Salve o resultado no padrão
+        <strong>completo</strong> (LOINC, unidades, referência e situação) ou
+        <strong>reduzido</strong> (nomes abreviados, sem referência nem
+        situação). Tudo roda no seu navegador — nada é enviado a servidores.
       </p>
     </div>
   </header>
@@ -31,22 +32,45 @@
   <main class="grade">
     <section class="painel" aria-label="Entrada">
       <div class="painel-cabec">
-        <h2>Laudo (texto)</h2>
-        <div class="acoes">
+        <h2>Exames</h2>
+        <div class="abas" role="tablist">
+          <button class="aba ativa" data-modo="rapido" type="button">Entrada rápida</button>
+          <button class="aba" data-modo="texto" type="button">Colar laudo</button>
+        </div>
+      </div>
+
+      <div id="modo-rapido" class="modo">
+        <div class="rapido-busca">
+          <input id="busca-exame" type="text" autocomplete="off" spellcheck="false"
+            placeholder="Digite o exame ou abreviação (ex.: HB, glicose, tgo) e Enter…" />
+          <div id="sugestoes" class="sugestoes oculto" role="listbox"></div>
+        </div>
+        <div id="itens-rapidos" class="itens-rapidos">
+          <p class="vazio">Nenhum exame adicionado ainda. Busque acima para começar.</p>
+        </div>
+      </div>
+
+      <div id="modo-texto" class="modo oculto">
+        <textarea id="entrada" spellcheck="false"
+          placeholder="Cole aqui o texto do laudo, ex.:&#10;Hemoglobina: 14,5 g/dL&#10;Glicose de jejum: 92 mg/dL&#10;Colesterol Total: 210 mg/dL"></textarea>
+        <div class="acoes" style="margin-top:.5rem">
           <button id="btn-exemplo" class="btn btn-sec" type="button">Exemplo</button>
           <button id="btn-limpar" class="btn btn-sec" type="button">Limpar</button>
         </div>
       </div>
-      <textarea id="entrada" spellcheck="false"
-        placeholder="Cole aqui o texto do laudo, ex.:&#10;Hemoglobina: 14,5 g/dL&#10;Glicose de jejum: 92 mg/dL&#10;Colesterol Total: 210 mg/dL"></textarea>
+
       <div class="controles">
-        <label for="sexo">Sexo (referências):</label>
+        <label for="sexo">Referências:</label>
         <select id="sexo">
           <option value="">Detectar automaticamente</option>
           <option value="M">Masculino</option>
           <option value="F">Feminino</option>
         </select>
-        <button id="btn-transcrever" class="btn btn-pri" type="button">Transcrever ↻</button>
+        <label for="nivel">Salvar como:</label>
+        <select id="nivel">
+          <option value="completo">Completo</option>
+          <option value="reduzido">Reduzido (abreviado)</option>
+        </select>
       </div>
     </section>
 

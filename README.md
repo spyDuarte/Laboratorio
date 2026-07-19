@@ -93,28 +93,45 @@ CT: 210 mg/dL
 ```
 
 Na versão web (`docs/`, publicada via GitHub Pages), a aba **Entrada
-rápida** oferece uma busca com autocompletar por nome/abreviação: digite,
-use **↑ / ↓** para navegar entre as sugestões e **Enter** para adicionar o
-exame realçado à lista, digite o valor e Enter novamente para o próximo —
-sem precisar redigitar unidade, faixa de referência ou nome completo. O
-seletor **Salvar como** alterna entre Completo e Reduzido, refletido na
-tabela, no JSON e no texto exportados. A aba **Colar laudo** mantém o
-fluxo original de colar um laudo em texto livre.
+rápida** foi pensada para digitar o mais rápido possível, com várias formas
+de adicionar exames:
 
-### Modelos pré-definidos
+- **Busca com autocompletar** por nome ou abreviação: digite, use **↑ / ↓**
+  para navegar entre as sugestões e **Enter** para adicionar o exame
+  realçado. No campo de valor, **Enter avança para o próximo exame ainda
+  vazio** — dá para preencher uma lista inteira só com `valor Enter valor
+  Enter…`, sem tocar no mouse.
+- **Linha rápida**: digite tudo de uma vez, no formato `abreviação valor`,
+  ex.: `hb 14 glic 92 ct 210 tgo 30`, e **Enter** adiciona todos de uma vez.
+  Aceita limites (`pcr <5`) e nomes completos (`colesterol total 210`).
+- **Modelos** (ver abaixo), incluindo modelos que você mesmo salva.
+
+O seletor **Salvar como** alterna entre Completo e Reduzido, refletido na
+tabela, no JSON e no texto exportados. A aba **Colar laudo** mantém o fluxo
+original de colar um laudo em texto livre.
+
+A lista de exames, os valores digitados e os modelos salvos ficam
+**guardados no próprio navegador** (localStorage) — ao recarregar ou
+reabrir a página, o trabalho continua de onde parou. Nada é enviado a
+servidores. O botão **Limpar lista** recomeça do zero.
+
+### Modelos pré-definidos e personalizados
 
 Em vez de adicionar exame por exame, os botões **Modelos** preenchem a
-entrada rápida com um painel de exames comumente pedidos para
-acompanhamento de condições crônicas — bastando digitar os valores:
+entrada rápida com um painel de exames — bastando digitar os valores.
+Já vêm dois painéis para condições crônicas:
 
 - **HAS** (hipertensão): Glicose, Colesterol total, HDL, LDL,
   Triglicerídeos, Ácido úrico, Creatinina, Potássio, Sódio, TSH.
 - **DM** (diabetes): Glicose, HbA1c, Colesterol total, HDL, LDL,
   Triglicerídeos, Creatinina, TSH, Insulina, Peptídeo C.
 
-Os modelos ficam definidos em `docs/transcritor.js` (`MODELOS`), referenciando
-o catálogo pelo código LOINC — adicionar ou ajustar um painel não exige
-tocar na interface.
+Com o botão **+ Salvar** você guarda a lista atual como um **modelo próprio**
+(ex.: "Check-up", "Pré-operatório"), que passa a aparecer ao lado dos fixos e
+pode ser reaplicado ou excluído a qualquer momento.
+
+Os painéis fixos ficam em `docs/transcritor.js` (`MODELOS`), referenciando o
+catálogo pelo código LOINC; os personalizados ficam no navegador do usuário.
 
 JSON completo (`--formato json`, padrão `--nivel completo`):
 

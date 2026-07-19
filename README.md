@@ -47,21 +47,26 @@ print(report_to_json(relatorio))
 
 ## Analitos suportados
 
-| Categoria        | Exames |
-|------------------|--------|
-| Hemograma        | Hemoglobina, Hematócrito, Eritrócitos, Leucócitos, Plaquetas, VCM, HCM, CHCM, RDW |
-| Bioquímica       | Glicose, HbA1c, Ureia, Creatinina, Ácido úrico, Ferro sérico, LDH, CK/CPK, Amilase, Lipase |
-| Lipidograma      | Colesterol total, HDL, LDL, VLDL, Triglicerídeos |
-| Função hepática  | AST (TGO), ALT (TGP), Gama GT, Fosfatase alcalina, Bilirrubina total/direta/indireta, Proteínas totais, Albumina |
-| Eletrólitos      | Sódio, Potássio, Cloro, Cálcio, Magnésio, Fósforo |
-| Tireoide         | TSH, T4 livre, T3 total |
-| Outros           | Ferritina, Vitamina D (25-OH), Vitamina B12, PCR, VHS |
+| Categoria             | Exames |
+|------------------------|--------|
+| Hemograma              | Hemoglobina, Hematócrito, Eritrócitos, Leucócitos, Plaquetas, VCM, HCM, CHCM, RDW, Reticulócitos |
+| Bioquímica             | Glicose, HbA1c, Ureia, Creatinina, Ácido úrico, Ferro sérico, LDH, CK/CPK, Amilase, Lipase, Homocisteína, Ácido fólico, Amônia, Lactato |
+| Lipidograma            | Colesterol total, HDL, LDL, VLDL, Triglicerídeos |
+| Função hepática        | AST (TGO), ALT (TGP), Gama GT, Fosfatase alcalina, Bilirrubina total/direta/indireta, Proteínas totais, Albumina |
+| Eletrólitos            | Sódio, Potássio, Cloro, Cálcio, Magnésio, Fósforo |
+| Coagulação             | INR, TTPA, Fibrinogênio, D-dímero |
+| Marcadores cardíacos   | Troponina I, CK-MB, BNP |
+| Tireoide               | TSH, T4 livre, T3 total |
+| Hormônios              | Insulina, Peptídeo C, Cortisol, PTH |
+| Marcadores tumorais    | PSA total, CEA, CA-125, CA 19-9, Alfafetoproteína (AFP) |
+| Outros                 | Ferritina, Vitamina D (25-OH), Vitamina B12, PCR, VHS |
 
-São **47 analitos** no total, cada um com uma **abreviação** curta (ex.:
+São **68 analitos** no total, cada um com uma **abreviação** curta (ex.:
 Hemoglobina → `HB`, Colesterol total → `CT`, TGO → `TGO`), usada na entrada
-rápida e no formato reduzido descritos abaixo. O parser ignora faixas de
-referência escritas na mesma linha entre parênteses ou colchetes (ex.:
-`Glicose 92 mg/dL (70-99)`).
+rápida e no formato reduzido descritos abaixo, e um código **LOINC**
+verificado individualmente contra a base oficial (loinc.org). O parser
+ignora faixas de referência escritas na mesma linha entre parênteses ou
+colchetes (ex.: `Glicose 92 mg/dL (70-99)`).
 
 ## Entrada rápida e nível de detalhe (completo ou reduzido)
 
@@ -94,12 +99,27 @@ CT: 210 mg/dL
 
 Na versão web (`docs/`, publicada via GitHub Pages), a aba **Entrada
 rápida** oferece uma busca com autocompletar por nome/abreviação: digite,
-pressione Enter para adicionar o exame à lista, digite o valor e Enter
-novamente para o próximo — sem precisar redigitar unidade, faixa de
-referência ou nome completo. O seletor **Salvar como** alterna entre
-Completo e Reduzido, refletido na tabela, no JSON e no texto exportados. A
-aba **Colar laudo** mantém o fluxo original de colar um laudo em texto
-livre.
+use **↑ / ↓** para navegar entre as sugestões e **Enter** para adicionar o
+exame realçado à lista, digite o valor e Enter novamente para o próximo —
+sem precisar redigitar unidade, faixa de referência ou nome completo. O
+seletor **Salvar como** alterna entre Completo e Reduzido, refletido na
+tabela, no JSON e no texto exportados. A aba **Colar laudo** mantém o
+fluxo original de colar um laudo em texto livre.
+
+### Modelos pré-definidos
+
+Em vez de adicionar exame por exame, os botões **Modelos** preenchem a
+entrada rápida com um painel de exames comumente pedidos para
+acompanhamento de condições crônicas — bastando digitar os valores:
+
+- **HAS** (hipertensão): Glicose, Colesterol total, HDL, LDL,
+  Triglicerídeos, Ácido úrico, Creatinina, Potássio, Sódio, TSH.
+- **DM** (diabetes): Glicose, HbA1c, Colesterol total, HDL, LDL,
+  Triglicerídeos, Creatinina, TSH, Insulina, Peptídeo C.
+
+Os modelos ficam definidos em `docs/transcritor.js` (`MODELOS`), referenciando
+o catálogo pelo código LOINC — adicionar ou ajustar um painel não exige
+tocar na interface.
 
 JSON completo (`--formato json`, padrão `--nivel completo`):
 

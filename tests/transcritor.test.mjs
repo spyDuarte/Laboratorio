@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 import {
-  transcrever, paraJson, paraRelatorio, reduzir, CATALOGO,
+  transcrever, paraJson, paraRelatorio, reduzir, CATALOGO, MODELOS,
   parseNumeroBr, normalizarNome, normalizarUnidade, parseLinha,
   identificarAnalito,
 } from "../docs/transcritor.js";
@@ -85,10 +85,12 @@ test("laudo completo: metadados, contagem e LOINC", () => {
   assert.doesNotThrow(() => JSON.parse(paraJson(t)));
 });
 
-test("catálogo tem 47 analitos e códigos LOINC únicos por nome", () => {
-  assert.equal(CATALOGO.length, 47);
+test("catálogo tem 68 analitos e códigos LOINC únicos por nome", () => {
+  assert.equal(CATALOGO.length, 68);
   const nomes = new Set(CATALOGO.map((a) => a.nome));
   assert.equal(nomes.size, CATALOGO.length);
+  const codigos = new Set(CATALOGO.map((a) => a.codigoLoinc));
+  assert.equal(codigos.size, CATALOGO.length);
 });
 
 test("catálogo tem abreviação única por analito", () => {
@@ -125,6 +127,19 @@ test("paraJson completo mantém todos os campos", () => {
   const bruto = paraJson(t, "completo");
   assert.ok(bruto.includes("codigo_loinc"));
   assert.ok(bruto.includes("situacao"));
+});
+
+test("modelos pré-definidos (HAS, DM) referenciam analitos reais do catálogo", () => {
+  const chaves = MODELOS.map((m) => m.chave);
+  assert.deepEqual(chaves.sort(), ["DM", "HAS"]);
+  const codigosCatalogo = new Set(CATALOGO.map((a) => a.codigoLoinc));
+  for (const modelo of MODELOS) {
+    assert.ok(modelo.analitos.length >= 5, `${modelo.chave} tem poucos exames`);
+    assert.equal(modelo.analitos.length, modelo.codigosLoinc.length);
+    for (const analito of modelo.analitos) {
+      assert.ok(codigosCatalogo.has(analito.codigoLoinc), `${modelo.chave}: ${analito.nome} fora do catálogo`);
+    }
+  }
 });
 
 test("paraRelatorio reduzido gera uma linha por exame", () => {

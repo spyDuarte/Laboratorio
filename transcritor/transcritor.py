@@ -12,7 +12,8 @@ from .parser import parse_texto
 
 _ORDEM_CATEGORIAS = [
     "Hemograma", "Bioquímica", "Lipidograma", "Função hepática",
-    "Eletrólitos", "Tireoide", "Outros", "Não catalogado",
+    "Eletrólitos", "Coagulação", "Marcadores cardíacos", "Tireoide",
+    "Hormônios", "Marcadores tumorais", "Outros", "Não catalogado",
 ]
 
 _SIMBOLO_SITUACAO = {

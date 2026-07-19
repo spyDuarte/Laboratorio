@@ -230,6 +230,92 @@ CATALOGO: list[Analito] = [
         ["vhs", "velocidade de hemossedimentacao", "hemossedimentacao", "vsg"],
         referencia={"geral": (None, 20.0)},
         observacao="Referência varia por idade e sexo"),
+
+    # ---------------------------------------------------------------- Hemograma (extra)
+    _mk("4679-7", "RET", "Reticulócitos", "Hemograma", "%",
+        ["reticulocitos"],
+        referencia={"geral": (0.5, 2.5)}),
+
+    # -------------------------------------------------------------- Coagulação
+    _mk("6301-6", "INR", "INR (Razão Normalizada Internacional)", "Coagulação", "",
+        ["inr", "rni", "razao normalizada internacional", "tempo de protrombina inr"],
+        referencia={"geral": (0.8, 1.2)},
+        observacao="Faixa terapêutica de anticoagulação oral costuma ser 2.0-3.0; "
+                    "referência aqui é para paciente sem uso de anticoagulante."),
+    _mk("3173-2", "TTPA", "TTPA (Tempo de Tromboplastina Parcial Ativada)", "Coagulação", "seg",
+        ["ttpa", "tempo de tromboplastina parcial ativada", "aptt", "ptt",
+         "tempo de tromboplastina parcial"],
+        referencia={"geral": (25.0, 35.0)}),
+    _mk("3255-7", "FIBR", "Fibrinogênio", "Coagulação", "mg/dL",
+        ["fibrinogenio"],
+        referencia={"geral": (200.0, 400.0)}),
+    _mk("48065-7", "DD", "D-dímero", "Coagulação", "ng/mL",
+        ["d dimero", "dimero d", "ddimero"],
+        referencia={"geral": (None, 500.0)},
+        observacao="Ponto de corte depende do método (FEU/DDU); usar referência do "
+                    "laboratório emissor."),
+
+    # -------------------------------------------------------- Marcadores cardíacos
+    _mk("10839-9", "TROP", "Troponina I", "Marcadores cardíacos", "ng/mL",
+        ["troponina", "troponina i", "troponina cardiaca"],
+        referencia={"geral": (None, 0.04)},
+        observacao="Ponto de corte depende do método (inclusive ultrassensível); "
+                    "dosagens seriadas auxiliam o diagnóstico de infarto."),
+    _mk("13969-1", "CKMB", "CK-MB", "Marcadores cardíacos", "ng/mL",
+        ["ck mb", "ckmb", "creatinoquinase mb"],
+        referencia={"geral": (0.0, 5.0)}),
+    _mk("30934-4", "BNP", "BNP (Peptídeo Natriurético tipo B)", "Marcadores cardíacos", "pg/mL",
+        ["bnp", "peptideo natriuretico tipo b", "peptideo natriuretico cerebral"],
+        referencia={"geral": (None, 100.0)}),
+
+    # -------------------------------------------------------------------- Hormônios
+    _mk("20448-7", "INSU", "Insulina", "Hormônios", "µUI/mL",
+        ["insulina", "insulina de jejum", "insulina basal"],
+        referencia={"geral": (2.6, 24.9)}),
+    _mk("1986-9", "PEPC", "Peptídeo C", "Hormônios", "ng/mL",
+        ["peptideo c", "peptideo c basal"],
+        referencia={"geral": (0.9, 7.1)}),
+    _mk("2143-6", "CORT", "Cortisol", "Hormônios", "µg/dL",
+        ["cortisol", "cortisol basal", "cortisol matinal"],
+        referencia={"geral": (6.2, 19.4)},
+        observacao="Referência para coleta matinal (7h-9h); varia conforme o horário."),
+    _mk("2731-8", "PTH", "PTH (Paratormônio)", "Hormônios", "pg/mL",
+        ["pth", "paratormonio", "hormonio paratireoidiano", "paratireoidiano"],
+        referencia={"geral": (15.0, 65.0)}),
+
+    # ---------------------------------------------------------- Marcadores tumorais
+    _mk("2857-1", "PSA", "PSA total (Antígeno Prostático Específico)", "Marcadores tumorais",
+        "ng/mL", ["psa", "psa total", "antigeno prostatico especifico"],
+        referencia={"geral": (None, 4.0)},
+        observacao="Referência aumenta com a idade; ponto de corte pode variar por laboratório."),
+    _mk("2039-6", "CEA", "CEA (Antígeno Carcinoembrionário)", "Marcadores tumorais", "ng/mL",
+        ["cea", "antigeno carcinoembrionario"],
+        referencia={"geral": (None, 5.0)},
+        observacao="Indicado para monitoramento, não para triagem isolada; tabagismo "
+                    "eleva o valor basal."),
+    _mk("10334-1", "CA125", "CA-125", "Marcadores tumorais", "U/mL",
+        ["ca 125", "ca125"],
+        referencia={"geral": (None, 35.0)}),
+    _mk("24108-3", "CA19", "CA 19-9", "Marcadores tumorais", "U/mL",
+        ["ca 19 9", "ca19"],
+        referencia={"geral": (None, 37.0)}),
+    _mk("1834-1", "AFP", "Alfafetoproteína (AFP)", "Marcadores tumorais", "ng/mL",
+        ["afp", "alfafetoproteina"],
+        referencia={"geral": (None, 10.0)}),
+
+    # -------------------------------------------------------------- Bioquímica (extra)
+    _mk("13965-9", "HCY", "Homocisteína", "Bioquímica", "µmol/L",
+        ["homocisteina"],
+        referencia={"geral": (5.0, 15.0)}),
+    _mk("2284-8", "FOL", "Ácido fólico", "Bioquímica", "ng/mL",
+        ["acido folico", "folato"],
+        referencia={"geral": (3.1, 17.5)}),
+    _mk("22763-7", "AMON", "Amônia", "Bioquímica", "µg/dL",
+        ["amonia"],
+        referencia={"geral": (15.0, 45.0)}),
+    _mk("2524-7", "LACT", "Lactato", "Bioquímica", "mg/dL",
+        ["lactato", "acido lactico"],
+        referencia={"geral": (4.5, 19.8)}),
 ]
 
 

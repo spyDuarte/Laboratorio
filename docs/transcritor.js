@@ -305,6 +305,76 @@ export const CATALOGO = [
   mk("30341-2", "VHS", "VHS", "Outros", "mm/h",
     ["vhs", "velocidade de hemossedimentacao", "hemossedimentacao", "vsg"], {},
     { geral: [null, 20.0] }, "Referência varia por idade e sexo"),
+
+  // Hemograma (extra)
+  mk("4679-7", "RET", "Reticulócitos", "Hemograma", "%", ["reticulocitos"], {},
+    { geral: [0.5, 2.5] }),
+
+  // Coagulação
+  mk("6301-6", "INR", "INR (Razão Normalizada Internacional)", "Coagulação", "",
+    ["inr", "rni", "razao normalizada internacional", "tempo de protrombina inr"], {},
+    { geral: [0.8, 1.2] },
+    "Faixa terapêutica de anticoagulação oral costuma ser 2.0-3.0; referência aqui " +
+    "é para paciente sem uso de anticoagulante."),
+  mk("3173-2", "TTPA", "TTPA (Tempo de Tromboplastina Parcial Ativada)", "Coagulação", "seg",
+    ["ttpa", "tempo de tromboplastina parcial ativada", "aptt", "ptt",
+      "tempo de tromboplastina parcial"], {},
+    { geral: [25.0, 35.0] }),
+  mk("3255-7", "FIBR", "Fibrinogênio", "Coagulação", "mg/dL", ["fibrinogenio"], {},
+    { geral: [200.0, 400.0] }),
+  mk("48065-7", "DD", "D-dímero", "Coagulação", "ng/mL",
+    ["d dimero", "dimero d", "ddimero"], {},
+    { geral: [null, 500.0] },
+    "Ponto de corte depende do método (FEU/DDU); usar referência do laboratório emissor."),
+
+  // Marcadores cardíacos
+  mk("10839-9", "TROP", "Troponina I", "Marcadores cardíacos", "ng/mL",
+    ["troponina", "troponina i", "troponina cardiaca"], {},
+    { geral: [null, 0.04] },
+    "Ponto de corte depende do método (inclusive ultrassensível); dosagens seriadas " +
+    "auxiliam o diagnóstico de infarto."),
+  mk("13969-1", "CKMB", "CK-MB", "Marcadores cardíacos", "ng/mL",
+    ["ck mb", "ckmb", "creatinoquinase mb"], {}, { geral: [0.0, 5.0] }),
+  mk("30934-4", "BNP", "BNP (Peptídeo Natriurético tipo B)", "Marcadores cardíacos", "pg/mL",
+    ["bnp", "peptideo natriuretico tipo b", "peptideo natriuretico cerebral"], {},
+    { geral: [null, 100.0] }),
+
+  // Hormônios
+  mk("20448-7", "INSU", "Insulina", "Hormônios", "µUI/mL",
+    ["insulina", "insulina de jejum", "insulina basal"], {}, { geral: [2.6, 24.9] }),
+  mk("1986-9", "PEPC", "Peptídeo C", "Hormônios", "ng/mL",
+    ["peptideo c", "peptideo c basal"], {}, { geral: [0.9, 7.1] }),
+  mk("2143-6", "CORT", "Cortisol", "Hormônios", "µg/dL",
+    ["cortisol", "cortisol basal", "cortisol matinal"], {},
+    { geral: [6.2, 19.4] }, "Referência para coleta matinal (7h-9h); varia conforme o horário."),
+  mk("2731-8", "PTH", "PTH (Paratormônio)", "Hormônios", "pg/mL",
+    ["pth", "paratormonio", "hormonio paratireoidiano", "paratireoidiano"], {},
+    { geral: [15.0, 65.0] }),
+
+  // Marcadores tumorais
+  mk("2857-1", "PSA", "PSA total (Antígeno Prostático Específico)", "Marcadores tumorais",
+    "ng/mL", ["psa", "psa total", "antigeno prostatico especifico"], {},
+    { geral: [null, 4.0] },
+    "Referência aumenta com a idade; ponto de corte pode variar por laboratório."),
+  mk("2039-6", "CEA", "CEA (Antígeno Carcinoembrionário)", "Marcadores tumorais", "ng/mL",
+    ["cea", "antigeno carcinoembrionario"], {}, { geral: [null, 5.0] },
+    "Indicado para monitoramento, não para triagem isolada; tabagismo eleva o valor basal."),
+  mk("10334-1", "CA125", "CA-125", "Marcadores tumorais", "U/mL",
+    ["ca 125", "ca125"], {}, { geral: [null, 35.0] }),
+  mk("24108-3", "CA19", "CA 19-9", "Marcadores tumorais", "U/mL",
+    ["ca 19 9", "ca19"], {}, { geral: [null, 37.0] }),
+  mk("1834-1", "AFP", "Alfafetoproteína (AFP)", "Marcadores tumorais", "ng/mL",
+    ["afp", "alfafetoproteina"], {}, { geral: [null, 10.0] }),
+
+  // Bioquímica (extra)
+  mk("13965-9", "HCY", "Homocisteína", "Bioquímica", "µmol/L", ["homocisteina"], {},
+    { geral: [5.0, 15.0] }),
+  mk("2284-8", "FOL", "Ácido fólico", "Bioquímica", "ng/mL",
+    ["acido folico", "folato"], {}, { geral: [3.1, 17.5] }),
+  mk("22763-7", "AMON", "Amônia", "Bioquímica", "µg/dL", ["amonia"], {},
+    { geral: [15.0, 45.0] }),
+  mk("2524-7", "LACT", "Lactato", "Bioquímica", "mg/dL",
+    ["lactato", "acido lactico"], {}, { geral: [4.5, 19.8] }),
 ];
 
 const INDICE_SINONIMOS = [];
@@ -312,6 +382,55 @@ for (const analito of CATALOGO) {
   for (const sin of analito.sinonimos) INDICE_SINONIMOS.push([sin, analito]);
 }
 INDICE_SINONIMOS.sort((a, b) => b[0].length - a[0].length);
+
+const INDICE_LOINC = new Map(CATALOGO.map((a) => [a.codigoLoinc, a]));
+
+/* --------------------------------------------------------- modelos pré-definidos */
+
+// Painéis de exames comumente pedidos para acompanhamento de condições
+// crônicas, para acelerar a entrada rápida. Referenciam o catálogo pelo
+// código LOINC (estável mesmo se a ordem do catálogo mudar).
+export const MODELOS = [
+  {
+    chave: "HAS",
+    nome: "Hipertensão (HAS)",
+    codigosLoinc: [
+      "2345-7",  // Glicose
+      "2093-3",  // Colesterol total
+      "2085-9",  // Colesterol HDL
+      "2089-1",  // Colesterol LDL
+      "2571-8",  // Triglicerídeos
+      "3084-1",  // Ácido úrico
+      "2160-0",  // Creatinina
+      "2823-3",  // Potássio
+      "2951-2",  // Sódio
+      "3016-3",  // TSH
+    ],
+  },
+  {
+    chave: "DM",
+    nome: "Diabetes (DM)",
+    codigosLoinc: [
+      "2345-7",  // Glicose
+      "4548-4",  // Hemoglobina glicada (HbA1c)
+      "2093-3",  // Colesterol total
+      "2085-9",  // Colesterol HDL
+      "2089-1",  // Colesterol LDL
+      "2571-8",  // Triglicerídeos
+      "2160-0",  // Creatinina
+      "3016-3",  // TSH
+      "20448-7", // Insulina
+      "1986-9",  // Peptídeo C
+    ],
+  },
+].map((modelo) => ({
+  ...modelo,
+  analitos: modelo.codigosLoinc.map((codigo) => {
+    const analito = INDICE_LOINC.get(codigo);
+    if (!analito) throw new Error(`Modelo ${modelo.chave}: código LOINC ${codigo} não existe no catálogo`);
+    return analito;
+  }),
+}));
 
 /* ----------------------------------------------------------- normalizador */
 
@@ -385,7 +504,7 @@ function normalizarItem(item, sexo) {
         `Unidade '${item.unidadeOriginal}' não reconhecida; valor mantido sem conversão`
       );
     }
-  } else if (valorOrigem != null && !unidadeNorm) {
+  } else if (valorOrigem != null && !unidadeNorm && analito.unidade) {
     observacoes.push(`Unidade ausente; assumida a canônica (${analito.unidade})`);
   }
 
@@ -478,7 +597,8 @@ function extrairMetadados(texto) {
 
 const ORDEM_CATEGORIAS = [
   "Hemograma", "Bioquímica", "Lipidograma", "Função hepática",
-  "Eletrólitos", "Tireoide", "Outros", "Não catalogado",
+  "Eletrólitos", "Coagulação", "Marcadores cardíacos", "Tireoide",
+  "Hormônios", "Marcadores tumorais", "Outros", "Não catalogado",
 ];
 
 const SIMBOLO_SITUACAO = {

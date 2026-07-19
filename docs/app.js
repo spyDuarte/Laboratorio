@@ -2,7 +2,7 @@
 
 import {
   transcrever, paraJson, paraRelatorio, fmtIntervalo, LAUDO_EXEMPLO,
-  normalizarNome, CATALOGO,
+  normalizarNome, CATALOGO, MODELOS,
 } from "./transcritor.js";
 
 const $ = (sel) => document.querySelector(sel);
@@ -19,6 +19,7 @@ const toast = $("#toast");
 const buscaExame = $("#busca-exame");
 const sugestoesEl = $("#sugestoes");
 const itensRapidosEl = $("#itens-rapidos");
+const modelosEl = $("#modelos");
 
 let ultimoJson = "";
 let ultimoTexto = "";
@@ -26,6 +27,9 @@ let modoAtual = "rapido"; // "rapido" | "texto"
 
 // Lista de exames adicionados no modo de entrada rápida: { analito, valor }
 let itensRapidos = [];
+
+// Índice da sugestão realçada (navegação por setas) na lista atual.
+let sugestaoAtivaIdx = -1;
 
 const SITUACAO = {
   normal: { rotulo: "Normal", cls: "ok" },
@@ -197,20 +201,32 @@ function buscarAnalitos(consulta) {
   return pontuados.slice(0, 8).map(([, analito]) => analito);
 }
 
-function renderSugestoes(lista) {
+function renderSugestoes(lista, ativaIdx = 0) {
   if (!lista.length) {
     sugestoesEl.classList.add("oculto");
     sugestoesEl.innerHTML = "";
+    sugestoesEl._lista = [];
+    sugestaoAtivaIdx = -1;
     return;
   }
+  sugestaoAtivaIdx = Math.min(Math.max(ativaIdx, 0), lista.length - 1);
   sugestoesEl.innerHTML = lista
-    .map((a, i) => `<button type="button" class="sugestao" data-idx="${i}" role="option">` +
+    .map((a, i) => `<button type="button" class="sugestao${i === sugestaoAtivaIdx ? " ativa" : ""}" ` +
+      `data-idx="${i}" role="option" aria-selected="${i === sugestaoAtivaIdx}">` +
       `<span class="sugestao-abrev">${esc(a.abreviacao)}</span>` +
       `<span class="sugestao-nome">${esc(a.nome)}</span>` +
       `<span class="sugestao-cat">${esc(a.categoria)}</span></button>`)
     .join("");
   sugestoesEl.classList.remove("oculto");
   sugestoesEl._lista = lista;
+  sugestoesEl.querySelector(".sugestao.ativa")?.scrollIntoView({ block: "nearest" });
+}
+
+function moverSugestaoAtiva(delta) {
+  const lista = sugestoesEl._lista || [];
+  if (!lista.length) return;
+  const novoIdx = (sugestaoAtivaIdx + delta + lista.length) % lista.length;
+  renderSugestoes(lista, novoIdx);
 }
 
 function adicionarItem(analito) {
@@ -223,6 +239,25 @@ function adicionarItem(analito) {
   buscaExame.value = "";
   renderSugestoes([]);
   const campo = itensRapidosEl.querySelector(`[data-codigo="${CSS.escape(analito.codigoLoinc)}"] .item-valor`);
+  campo?.focus();
+}
+
+function adicionarModelo(chave) {
+  const modelo = MODELOS.find((m) => m.chave === chave);
+  if (!modelo) return;
+  for (const analito of modelo.analitos) {
+    if (!itensRapidos.some((it) => it.analito.codigoLoinc === analito.codigoLoinc)) {
+      itensRapidos.push({ analito, valor: "" });
+    }
+  }
+  renderItensRapidos();
+  atualizar();
+  mostrarToast(`Modelo "${modelo.nome}" adicionado`);
+  const primeiroVazio = itensRapidos.find((it) => it.valor === "");
+  const alvo = primeiroVazio || itensRapidos[itensRapidos.length - 1];
+  const campo = itensRapidosEl.querySelector(
+    `[data-codigo="${CSS.escape(alvo.analito.codigoLoinc)}"] .item-valor`
+  );
   campo?.focus();
 }
 
@@ -328,10 +363,18 @@ buscaExame.addEventListener("input", () => {
   renderSugestoes(buscarAnalitos(buscaExame.value));
 });
 buscaExame.addEventListener("keydown", (ev) => {
-  if (ev.key === "Enter") {
+  const lista = sugestoesEl._lista || [];
+  if (ev.key === "ArrowDown") {
+    if (!lista.length) return;
     ev.preventDefault();
-    const lista = sugestoesEl._lista || [];
-    if (lista.length) adicionarItem(lista[0]);
+    moverSugestaoAtiva(1);
+  } else if (ev.key === "ArrowUp") {
+    if (!lista.length) return;
+    ev.preventDefault();
+    moverSugestaoAtiva(-1);
+  } else if (ev.key === "Enter") {
+    ev.preventDefault();
+    if (lista.length) adicionarItem(lista[Math.max(sugestaoAtivaIdx, 0)]);
   } else if (ev.key === "Escape") {
     renderSugestoes([]);
   }
@@ -343,8 +386,20 @@ sugestoesEl.addEventListener("click", (ev) => {
   const analito = lista[Number(btn.dataset.idx)];
   if (analito) adicionarItem(analito);
 });
+sugestoesEl.addEventListener("mousemove", (ev) => {
+  const btn = ev.target.closest(".sugestao");
+  if (!btn) return;
+  const idx = Number(btn.dataset.idx);
+  if (idx !== sugestaoAtivaIdx) renderSugestoes(sugestoesEl._lista, idx);
+});
 document.addEventListener("click", (ev) => {
   if (!ev.target.closest(".rapido-busca")) renderSugestoes([]);
+});
+
+modelosEl?.addEventListener("click", (ev) => {
+  const btn = ev.target.closest("[data-modelo]");
+  if (!btn) return;
+  adicionarModelo(btn.dataset.modelo);
 });
 
 itensRapidosEl.addEventListener("input", (ev) => {

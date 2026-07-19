@@ -91,7 +91,7 @@ def normalizar_item(item: ItemBruto, sexo: Optional[str] = None) -> Resultado:
                 f"Unidade '{item.unidade_original}' não reconhecida; "
                 f"valor mantido sem conversão"
             )
-    elif valor_origem is not None and not unidade_norm:
+    elif valor_origem is not None and not unidade_norm and analito.unidade:
         observacoes.append(
             f"Unidade ausente; assumida a canônica ({analito.unidade})"
         )

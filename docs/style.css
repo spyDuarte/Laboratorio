@@ -142,13 +142,17 @@ select#sexo, select#nivel {
   font-size: .86rem;
 }
 .sugestao:last-child { border-bottom: 0; }
-.sugestao:hover, .sugestao:focus { background: var(--bg); }
+.sugestao:hover, .sugestao:focus, .sugestao.ativa { background: var(--bg); }
+.sugestao.ativa { box-shadow: inset 3px 0 0 var(--primaria); }
 .sugestao-abrev {
   font-weight: 700; font-family: ui-monospace, monospace; color: var(--acento);
   min-width: 3.2em;
 }
 .sugestao-nome { flex: 1; }
 .sugestao-cat { font-size: .74rem; color: var(--texto-suave); }
+
+.modelos { display: flex; align-items: center; gap: .4rem; margin-top: .6rem; flex-wrap: wrap; }
+.modelos-rotulo { font-size: .82rem; color: var(--texto-suave); }
 
 .itens-rapidos { margin-top: .75rem; display: flex; flex-direction: column; gap: .4rem; }
 .item-rapido {

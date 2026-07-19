@@ -42,11 +42,16 @@
       <div id="modo-rapido" class="modo">
         <div class="rapido-busca">
           <input id="busca-exame" type="text" autocomplete="off" spellcheck="false"
-            placeholder="Digite o exame ou abreviação (ex.: HB, glicose, tgo) e Enter…" />
+            placeholder="Digite o exame ou abreviação (ex.: HB, glicose, tgo) — ↑↓ navegam, Enter adiciona…" />
           <div id="sugestoes" class="sugestoes oculto" role="listbox"></div>
         </div>
+        <div id="modelos" class="modelos">
+          <span class="modelos-rotulo">Modelos:</span>
+          <button type="button" class="btn btn-sec" data-modelo="HAS">HAS</button>
+          <button type="button" class="btn btn-sec" data-modelo="DM">DM</button>
+        </div>
         <div id="itens-rapidos" class="itens-rapidos">
-          <p class="vazio">Nenhum exame adicionado ainda. Busque acima para começar.</p>
+          <p class="vazio">Nenhum exame adicionado ainda. Busque acima ou escolha um modelo para começar.</p>
         </div>
       </div>
 

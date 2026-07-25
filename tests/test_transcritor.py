@@ -205,11 +205,21 @@ class TestLaudoCompleto(unittest.TestCase):
         self.assertNotIn("Data da coleta", " ".join(t.nao_reconhecidos))
 
 
-class TestFormatoReduzido(unittest.TestCase):
-    def test_catalogo_tem_abreviacao_unica(self):
+class TestCatalogo(unittest.TestCase):
+    def test_tem_68_analitos_com_loinc_e_nome_unicos(self):
+        self.assertEqual(len(CATALOGO), 68)
+        nomes = {a.nome for a in CATALOGO}
+        self.assertEqual(len(nomes), len(CATALOGO), "nome de analito duplicado")
+        codigos = {a.codigo_loinc for a in CATALOGO}
+        self.assertEqual(len(codigos), len(CATALOGO), "código LOINC duplicado")
+
+    def test_abreviacao_presente_e_unica(self):
         abreviacoes = [a.abreviacao for a in CATALOGO]
         self.assertTrue(all(abreviacoes), "há analito sem abreviação")
         self.assertEqual(len(abreviacoes), len(set(abreviacoes)), "abreviação duplicada")
+
+
+class TestFormatoReduzido(unittest.TestCase):
 
     def test_resultado_carrega_abreviacao(self):
         r = transcrever("Hemoglobina 14,5 g/dL").resultados[0]

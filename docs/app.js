@@ -69,7 +69,7 @@ function fmtNumero(v) {
 function renderMeta(m) {
   const chips = [];
   for (const chave of ["paciente", "data_coleta", "laboratorio", "medico", "convenio", "sexo"]) {
-    if (chave in m && chave !== "total_reconhecidos") {
+    if (chave in m) {
       let valor = m[chave];
       if (chave === "sexo") valor = valor === "M" ? "Masculino" : valor === "F" ? "Feminino" : valor;
       chips.push(`<span class="chip">${esc(ROTULO_META[chave])}: <strong>${esc(valor)}</strong></span>`);
@@ -88,58 +88,52 @@ function renderResumo(t) {
     `<span class="legenda"><span class="ponto alto"></span>acima</span>`;
 }
 
-function renderTabelaCompleta(t) {
+// Agrupa os resultados por categoria em blocos <table>, deixando a cada
+// chamada apenas o cabeçalho e a montagem da linha a cargo do chamador.
+function renderTabelaAgrupada(resultados, cabecalho, linhaHtml) {
   let html = "";
   let categoriaAtual = null;
   let abriu = false;
 
-  for (const r of t.resultados) {
+  for (const r of resultados) {
     if (r.categoria !== categoriaAtual) {
       if (abriu) html += `</tbody></table></div></div>`;
       categoriaAtual = r.categoria;
       html += `<div class="cat"><h3>${esc(categoriaAtual)}</h3><div class="tabela-wrap">` +
-        `<table><thead><tr><th>Exame</th><th class="num">Resultado</th>` +
-        `<th>Situação</th><th>Referência</th><th>LOINC</th></tr></thead><tbody>`;
+        `<table><thead><tr>${cabecalho}</tr></thead><tbody>`;
       abriu = true;
     }
-    const s = SITUACAO[r.situacao] || SITUACAO.sem_referencia;
-    const ref = fmtIntervalo(r.intervalo_referencia);
-    const refTxt = ref ? `${esc(ref)} <span class="loinc">${esc(r.unidade)}</span>` : "—";
-    const mostraOrig =
-      normalizarNome(r.nome_original) !== normalizarNome(r.analito);
-    const orig = mostraOrig ? `<span class="exame-orig">laudo: ${esc(r.nome_original)}</span>` : "";
-    const limite = r.limite || "";
-    html +=
-      `<tr><td><span class="exame-nome">${esc(r.analito)}</span>${orig}</td>` +
-      `<td class="num">${esc(limite)}${fmtNumero(r.valor)} ${esc(r.unidade)}</td>` +
-      `<td><span class="badge ${s.cls}">${esc(s.rotulo)}</span></td>` +
-      `<td>${refTxt}</td>` +
-      `<td class="loinc">${esc(r.codigo_loinc || "—")}</td></tr>`;
+    html += linhaHtml(r);
   }
   if (abriu) html += `</tbody></table></div></div>`;
   return html;
 }
 
-function renderTabelaReduzida(t) {
-  let html = "";
-  let categoriaAtual = null;
-  let abriu = false;
-
-  for (const r of t.resultados) {
-    if (r.categoria !== categoriaAtual) {
-      if (abriu) html += `</tbody></table></div></div>`;
-      categoriaAtual = r.categoria;
-      html += `<div class="cat"><h3>${esc(categoriaAtual)}</h3><div class="tabela-wrap">` +
-        `<table><thead><tr><th>Abrev.</th><th class="num">Resultado</th></tr></thead><tbody>`;
-      abriu = true;
-    }
+function renderTabelaCompleta(t) {
+  const cabecalho = `<th>Exame</th><th class="num">Resultado</th>` +
+    `<th>Situação</th><th>Referência</th><th>LOINC</th>`;
+  return renderTabelaAgrupada(t.resultados, cabecalho, (r) => {
+    const s = SITUACAO[r.situacao] || SITUACAO.sem_referencia;
+    const ref = fmtIntervalo(r.intervalo_referencia);
+    const refTxt = ref ? `${esc(ref)} <span class="loinc">${esc(r.unidade)}</span>` : "—";
+    const mostraOrig = normalizarNome(r.nome_original) !== normalizarNome(r.analito);
+    const orig = mostraOrig ? `<span class="exame-orig">laudo: ${esc(r.nome_original)}</span>` : "";
     const limite = r.limite || "";
-    html +=
-      `<tr><td><span class="exame-nome">${esc((r.abreviacao || r.analito).toUpperCase())}</span></td>` +
+    return `<tr><td><span class="exame-nome">${esc(r.analito)}</span>${orig}</td>` +
+      `<td class="num">${esc(limite)}${fmtNumero(r.valor)} ${esc(r.unidade)}</td>` +
+      `<td><span class="badge ${s.cls}">${esc(s.rotulo)}</span></td>` +
+      `<td>${refTxt}</td>` +
+      `<td class="loinc">${esc(r.codigo_loinc || "—")}</td></tr>`;
+  });
+}
+
+function renderTabelaReduzida(t) {
+  const cabecalho = `<th>Abrev.</th><th class="num">Resultado</th>`;
+  return renderTabelaAgrupada(t.resultados, cabecalho, (r) => {
+    const limite = r.limite || "";
+    return `<tr><td><span class="exame-nome">${esc((r.abreviacao || r.analito).toUpperCase())}</span></td>` +
       `<td class="num">${esc(limite)}${fmtNumero(r.valor)} ${esc(r.unidade)}</td></tr>`;
-  }
-  if (abriu) html += `</tbody></table></div></div>`;
-  return html;
+  });
 }
 
 function renderTabela(t, nivel) {
@@ -490,12 +484,16 @@ function trocarVista(vista) {
   }
 }
 
+function aplicarModoVisivel() {
+  document.querySelectorAll("[data-modo]").forEach((b) =>
+    b.classList.toggle("ativa", b.dataset.modo === modoAtual));
+  $("#modo-rapido").classList.toggle("oculto", modoAtual !== "rapido");
+  $("#modo-texto").classList.toggle("oculto", modoAtual !== "texto");
+}
+
 function trocarModo(modo) {
   modoAtual = modo;
-  document.querySelectorAll("[data-modo]").forEach((b) =>
-    b.classList.toggle("ativa", b.dataset.modo === modo));
-  $("#modo-rapido").classList.toggle("oculto", modo !== "rapido");
-  $("#modo-texto").classList.toggle("oculto", modo !== "texto");
+  aplicarModoVisivel();
   atualizar();
 }
 
@@ -615,8 +613,5 @@ carregarModelosCustom();
 restaurarEstado();
 renderModelos();
 renderItensRapidos();
-document.querySelectorAll("[data-modo]").forEach((b) =>
-  b.classList.toggle("ativa", b.dataset.modo === modoAtual));
-$("#modo-rapido").classList.toggle("oculto", modoAtual !== "rapido");
-$("#modo-texto").classList.toggle("oculto", modoAtual !== "texto");
+aplicarModoVisivel();
 atualizar();
